@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Manuale 5 — Collaudo e Manutenzione</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-badge">Manuale 5 di 5 · Test &amp; Ripristino</span>
+      <h1>Collaudo Progressivo<br/>e Manutenzione</h1>
+      <p class="cover-sub">
+        Procedure passo passo per verificare in sicurezza l'hardware ESP32-S3 all'arrivo dei componenti,
+        aggiornare il firmware PlatformIO ed eseguire il ripristino del sistema.
+      </p>
+      <div class="cover-card">
+        <h3>Stato attuale dei test hardware</h3>
+        <p>
+          I test automatici software su PC (11 test Voice &amp; AI + 7 test Simulatore OLED) sono <strong>superati</strong>.
+          Tutti i 5 test hardware su scheda descritti in questo manuale sono <strong>DA ESEGUIRE</strong> dopo la consegna dei componenti.
+        </p>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <span>JARVIS AI Desk Buddy · FASE 6.1</span>
+      <span>Formato A4 · Italiano</span>
+    </div>
+  </section>
+
+  <div class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#sec-1">Checklist Prima dell'Accensione</a></li>
+      <li><a href="#sec-2">Test 1 — ESP32-S3 e Display OLED 1,3"</a></li>
+      <li><a href="#sec-3">Test 2 — Collegamento USB con JARVIS Windows</a></li>
+      <li><a href="#sec-4">Test 3 &amp; 4 — Speaker MAX98357A e Microfono INMP441</a></li>
+      <li><a href="#sec-5">Test 5 — Conversazione Completa End-to-End</a></li>
+      <li><a href="#sec-6">Manutenzione, Aggiornamento Firmware e Ripristino</a></li>
+    </ol>
+  </div>
+
+  <h2 id="sec-1">1. Checklist Prima dell'Accensione</h2>
+  <ul class="checklist">
+    <li>Controllato visivamente l'ordine reale dei pin <code>VCC/GND/SCL/SDA</code> sull'OLED 1,3".</li>
+    <li>Verificato con multimetro che non vi siano cortocircuiti tra <code>5V</code>, <code>3V3</code> e <code>GND</code>.</li>
+    <li>Verificato che <code>J1-3 (RST/EN)</code> NON sia collegato a <code>GND</code>.</li>
+    <li>Verificato che <code>INMP441 VDD</code> sia su <code>3V3</code> (mai 5 V) e <code>L/R</code> su <code>GND</code>.</li>
+    <li>Verificato che <code>MAX98357A VIN</code> sia su <code>5V</code> e lo speaker sia collegato SOLO a <code>OUT+ / OUT-</code>.</li>
+  </ul>
+
+  <h2 id="sec-2">2. Test 1 — ESP32-S3 e Display OLED 1,3"</h2>
+  <ol>
+    <li>Collega solo ESP32-S3, OLED (<code>GPIO 41/42</code>) e pulsante (<code>GPIO 47</code>) sulla breadboard.</li>
+    <li>Inserisci il cavo USB-C nella porta <strong><code>USB</code> nativa</strong> dell'ESP32-S3 e collegalo al PC Windows 11.</li>
+    <li>Compila e carica il firmware base con PlatformIO: <code>pio run -e esp32s3_sh1106 -t upload</code>.</li>
+    <li>Apri il Serial Monitor (<code>115200</code> baud): verifica il messaggio <code>I2C OLED detected at 0x3C</code>.</li>
+    <li><strong>Criterio di superamento:</strong> tutte e 7 le espressioni sono nitide e centrate. Se vedi uno spostamento di 2 pixel o una barra di rumore laterale, usa l'ambiente <code>esp32s3_ssd1306</code>.</li>
+  </ol>
+
+  <h2 id="sec-3">3. Test 2 — Collegamento USB con JARVIS Windows</h2>
+  <ol>
+    <li>Chiudi il Serial Monitor di PlatformIO (una porta COM può essere aperta da un solo programma).</li>
+    <li>Avvia <code>05-Voice-AI\run_jarvis.bat</code> e collega <code>SerialEyeTransport</code> alla porta COM della scheda.</li>
+    <li>Invia un comando testuale e osserva sugli occhi reali la sequenza <code>LISTENING → THINKING → SPEAKING → IDLE</code>.</li>
+    <li>Scollega e ricollega il cavo USB: verifica che l'app Windows non vada in crash.</li>
+  </ol>
+
+  <h2 id="sec-4">4. Test 3 &amp; 4 — Speaker MAX98357A e Microfono INMP441</h2>
+  <h3>Test 3 — Speaker (MAX98357A)</h3>
+  <ol>
+    <li>Verifica che <code>OUT+</code> e <code>OUT-</code> non siano in continuità con <code>GND</code>.</li>
+    <li>Avvia un segnale di test I²S1 TX a <strong>volume prudente (15–25%)</strong> e poi una frase breve di Piper Riccardo.</li>
+    <li><strong>Superamento:</strong> suono pulito senza distorsioni né riavvii dell'ESP32-S3.</li>
+  </ol>
+  <h3>Test 4 — Microfono (INMP441)</h3>
+  <ol>
+    <li>Acquisisci 5 secondi di audio I²S0 RX a 16 kHz mono parlando a 30–50 cm.</li>
+    <li><strong>Superamento:</strong> registrazione chiara senza fruscio eccessivo né clipping, trascrivibile da <code>faster-whisper</code>.</li>
+  </ol>
+
+  <h2 id="sec-5">5. Test 5 — Conversazione Completa End-to-End</h2>
+  <ol>
+    <li>Premi il pulsante fisico su <code>GPIO 47</code>: gli occhi passano a <code>LISTENING</code>.</li>
+    <li>Fai una domanda in italiano davanti all'<code>INMP441</code>.</li>
+    <li>Attendi <code>THINKING</code> (<code>faster-whisper</code> + <code>Ollama</code>) e poi <code>SPEAKING</code> (voce <code>Piper Riccardo</code> dallo speaker del robot).</li>
+    <li>Verifica l'interruzione immediata premendo <strong>Stop</strong> durante la risposta.</li>
+    <li><strong>Superamento:</strong> almeno 3 turni consecutivi completati senza errori USB o eco microfono→speaker.</li>
+  </ol>
+
+  <h2 id="sec-6">6. Manutenzione, Aggiornamento Firmware e Ripristino</h2>
+  <ul>
+    <li><strong>Pulizia e manutenzione:</strong> rimuovi la polvere dalla griglia speaker e dal foro microfono con aria compressa delicata; per accedere a OLED o ESP32-S3 apri il portello posteriore <code>3036</code> senza smontare il corpo LEGO.</li>
+    <li><strong>Aggiornamento firmware:</strong> dalla cartella <code>04-Firmware/jarvis-desk-buddy</code> esegui <code>pio run -e esp32s3_sh1106 -t upload</code> (o <code>esp32s3_ssd1306</code>).</li>
+    <li><strong>Ripristino software:</strong> in caso di modifiche errate, è disponibile il backup completo esterno <code>JARVIS_LEGO_BOT_BACKUP_20261114.zip</code>. In emergenza vocale, seleziona <code>Microsoft Elsa Desktop</code> o <code>Demo Mode</code> dalla GUI di JARVIS Windows.</li>
+  </ul>
+</body>
+</html>

@@ -1,0 +1,296 @@
+@page {
+  size: A4 portrait;
+  margin: 18mm 15mm 20mm 15mm;
+  @top-left {
+    content: "JARVIS LEGO BOT — Documentazione Tecnica";
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 8pt;
+    color: #64748B;
+  }
+  @bottom-left {
+    content: "Manuale operativo A4";
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 8pt;
+    color: #64748B;
+  }
+  @bottom-right {
+    content: "Pagina " counter(page) " di " counter(pages);
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 8pt;
+    font-weight: 600;
+    color: #334155;
+  }
+}
+
+@page :first {
+  margin: 0;
+  @top-left { content: none; }
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  color: #1E293B;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cover Page */
+.cover {
+  width: 210mm;
+  height: 297mm;
+  background: linear-gradient(155deg, #0F172A 0%, #1E293B 62%, #0C4A6E 100%);
+  color: #F8FAFC;
+  padding: 26mm 22mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  page-break-after: always;
+}
+
+.cover-badge {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid #38BDF8;
+  color: #7DD3FC;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 4px;
+}
+
+.cover h1 {
+  font-size: 28pt;
+  line-height: 1.15;
+  margin: 18px 0 12px 0;
+  color: #FFFFFF;
+}
+
+.cover-sub {
+  font-size: 13pt;
+  color: #CBD5E1;
+  max-width: 155mm;
+  margin: 0 0 22px 0;
+}
+
+.cover-meta {
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+  padding-top: 14px;
+  font-size: 9.5pt;
+  color: #94A3B8;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cover-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-top: 16px;
+}
+
+.cover-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 11pt;
+  color: #38BDF8;
+}
+
+.cover-card p {
+  margin: 0;
+  font-size: 9.5pt;
+  color: #E2E8F0;
+}
+
+/* Headings */
+h2 {
+  font-size: 15pt;
+  color: #0F172A;
+  border-bottom: 2px solid #0284C7;
+  padding-bottom: 4px;
+  margin: 18px 0 10px 0;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 11.5pt;
+  color: #0369A1;
+  margin: 14px 0 6px 0;
+  page-break-after: avoid;
+}
+
+p {
+  margin: 0 0 8px 0;
+}
+
+ul, ol {
+  margin: 4px 0 10px 0;
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+a {
+  color: #0284C7;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 9pt;
+  background: #F1F5F9;
+  color: #0F172A;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* Table of Contents */
+.toc {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  page-break-inside: avoid;
+}
+
+.toc h2 {
+  margin-top: 0;
+  font-size: 13pt;
+}
+
+.toc ol {
+  margin: 6px 0 0 0;
+  padding-left: 20px;
+}
+
+.toc li {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 14px 0;
+  font-size: 8.8pt;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #0F172A;
+  color: #F8FAFC;
+  text-align: left;
+  padding: 6px 8px;
+  font-weight: 600;
+}
+
+td {
+  border: 1px solid #CBD5E1;
+  padding: 5px 8px;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td {
+  background: #F8FAFC;
+}
+
+/* Callouts */
+.callout {
+  border-left: 4px solid #0284C7;
+  background: #F0F9FF;
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  margin: 10px 0 12px 0;
+  page-break-inside: avoid;
+}
+
+.callout-warn {
+  border-left-color: #D97706;
+  background: #FFFBEB;
+}
+
+.callout-danger {
+  border-left-color: #DC2626;
+  background: #FEF2F2;
+}
+
+.callout-ok {
+  border-left-color: #16A34A;
+  background: #F0FDF4;
+}
+
+.callout > strong:first-child {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 7.5pt;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.b-ok { background: #DCFCE7; color: #166534; }
+.b-wait { background: #FEF3C7; color: #92400E; }
+.b-no { background: #FEE2E2; color: #991B1B; }
+
+/* Figures & SVGs */
+.figure {
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 10px 0 14px 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.figure img, .figure svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.figure-caption {
+  font-size: 8.5pt;
+  color: #475569;
+  margin-top: 6px;
+}
+
+/* Checklist */
+.checklist {
+  list-style: none;
+  padding-left: 4px;
+}
+
+.checklist li::before {
+  content: "☐ ";
+  font-weight: 700;
+  color: #0284C7;
+}
+
+.page-break {
+  page-break-before: always;
+}

@@ -1,6 +1,20 @@
 # JARVIS LEGO BOT
 
-Assistente vocale da scrivania in italiano costruito con mattoncini LEGO classici e LEGO Technic, basato su **ESP32-S3 N16R8**, firmware open source **XiaoZhi ESP32** e backend **Docker ARM64** su **Raspberry Pi 5**.
+Assistente vocale da scrivania in italiano costruito con mattoncini LEGO, basato su **ESP32-S3 N16R8**, **Ollama (`qwen2.5:3b`)**, **faster-whisper** e voce personalizzata **Piper Riccardo (Amichetto Vivace)** su PC Windows 11.
+
+---
+
+## Manuali PDF Illustrati (`docs/manuals/`)
+
+Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici, apri direttamente i **5 manuali A4 in PDF**:
+
+1. [Manuale 1 — Presentazione Generale JARVIS](docs/manuals/01_Presentazione_Generale_JARVIS.pdf)
+2. [Manuale 2 — Elettronica e Collegamenti](docs/manuals/02_Elettronica_e_Collegamenti.pdf)
+3. [Manuale 3 — Costruzione LEGO Companion v2](docs/manuals/03_Costruzione_LEGO_Companion_v2.pdf)
+4. [Manuale 4 — Software e Utilizzo Windows](docs/manuals/04_Software_e_Utilizzo_Windows.pdf)
+5. [Manuale 5 — Collaudo e Manutenzione](docs/manuals/05_Collaudo_e_Manutenzione.pdf)
+
+*(Sorgenti HTML/SVG e script ripetibile `build_manuals.py` in `docs/manual-sources/`).*
 
 ---
 
@@ -11,10 +25,10 @@ Assistente vocale da scrivania in italiano costruito con mattoncini LEGO classic
 | **FASE 1** | Ricerca tecnica, validazione hardware e integrazione decisioni | ✅ Completata e approvata |
 | **FASE 2** | Progettazione esecutiva hardware (schema, pinout, BOM, breadboard, test) | ✅ Completata e approvata (con collaudo termico in FASE 4) |
 | **FASE 3** | Design LEGO e progetto costruttivo (Monoblocco modulare + Base intercambiabile) | ✅ Elaborati pronti in `03-Mechanical-Design/` (in attesa di approvazione) |
-| **FASE 4** | Firmware `xiaozhi-esp32` e prima conversazione vocale | ⏳ Da iniziare |
-| **FASE 5** | Backend Raspberry Pi 5 (Docker ARM64, ASR/TTS/LLM italiano, Bridge sicuro) | ⏳ Da iniziare |
-| **FASE 6** | Personalizzazione volto animato OLED e personalità JARVIS | ⏳ Da iniziare |
-| **FASE 7** | Test finale integrato e documentazione completa | ⏳ Da iniziare |
+| **FASE 4** | Firmware `jarvis-desk-buddy` (occhi OLED 7 espressioni) + Simulatore Windows | ✅ Compilabile e testato su simulatore |
+| **FASE 5** | Voice & AI su PC Windows 11 (`faster-whisper` + `Ollama qwen2.5:3b` + `Piper Riccardo Amichetto Vivace`) | ✅ Operativo su PC Windows 11 |
+| **FASE 6** | Preparazione elettronica ESP32-S3, architettura audio USB e piano collaudo | ✅ Documentazione pronta (`06-Hardware-Integration/`), in attesa componenti |
+| **FASE 7** | Collaudo hardware reale, integrazione USB e montaggio finale LEGO | ⏳ Da iniziare all'arrivo dei componenti |
 
 ---
 
@@ -24,11 +38,11 @@ Assistente vocale da scrivania in italiano costruito con mattoncini LEGO classic
 - [FASE 1 – Analisi Tecnica Iniziale](docs/FASE_1_Analisi_Tecnica.md)
 - [FASE 1 – Integrazione e Decisioni Definitive](docs/FASE_1_Integrazione_e_Decisioni.md)
 
-### FASE 2 – Hardware (`01-Hardware/`)
-- [Elaborato A – Schema Elettronico, Alimentazione e Protezioni](01-Hardware/01_Schema_Elettronico_e_Alimentazione.md)
-- [Elaborato B – Tabella Pinout Definitiva](01-Hardware/02_Tabella_Pinout_Definitiva.md)
-- [Elaborati C & D – Distinta Componenti (BOM) e Stima Costi](01-Hardware/03_Distinta_Componenti_BOM_e_Costi.md)
-- [Elaborati E, F & G – Montaggio Breadboard, Trasferimento LEGO e Test Pre-Alimentazione](01-Hardware/04_Montaggio_Breadboard_Collaudo_e_Trasferimento_LEGO.md)
+### FASE 2 – Hardware Storico (`archive/01-Hardware/`, archiviato — sostituito da `06-Hardware-Integration/` per v1 USB)
+- [Elaborato A – Schema Elettronico, Alimentazione e Protezioni](archive/01-Hardware/01_Schema_Elettronico_e_Alimentazione.md)
+- [Elaborato B – Tabella Pinout Definitiva](archive/01-Hardware/02_Tabella_Pinout_Definitiva.md)
+- [Elaborati C & D – Distinta Componenti (BOM) e Stima Costi](archive/01-Hardware/03_Distinta_Componenti_BOM_e_Costi.md)
+- [Elaborati E, F & G – Montaggio Breadboard, Trasferimento LEGO e Test Pre-Alimentazione](archive/01-Hardware/04_Montaggio_Breadboard_Collaudo_e_Trasferimento_LEGO.md)
 
 ### FASE 3 – Progettazione Meccanica Modulare (`03-Mechanical-Design/`)
 - [Indice Cartella `03-Mechanical-Design`](03-Mechanical-Design/README.md)
@@ -45,7 +59,16 @@ Assistente vocale da scrivania in italiano costruito con mattoncini LEGO classic
   - [06 – Procedure di Sicurezza, Collaudo e Tabella Approvazione B2](03-Mechanical-Design/05-Mobile-Electronics/06_Procedure_Sicurezza_e_Collaudo.md)
 - Render compatto: [Vista Prospettica Compatta](03-Mechanical-Design/images/jarvis_compact_perspective.jpg)
 
-*(Nota: la precedente bozza Testa+Collo+Busto in `02-LEGO/` è stata superata dalla decisione progettuale Monoblocco Modulare in `03-Mechanical-Design/`).*
+*(Nota: la precedente bozza Testa+Collo+Busto in `archive/02-LEGO/` e le vecchie iterazioni `06..09` in `archive/legacy-mechanical-design/` sono state archiviate. Il design LEGO definitivo attivo è [Companion Hybrid v2 — Visiera Capsula Arrotondata SNOT](03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md)).*
+
+### FASE 6 – Preparazione Elettronica ESP32-S3 e Integrazione USB (`06-Hardware-Integration/`)
+- [HARDWARE_PINOUT.md](06-Hardware-Integration/HARDWARE_PINOUT.md) — Verifica pinout ESP32-S3-DevKitC-1 N16R8 e mappatura completa OLED, INMP441, MAX98357A, Speaker e Pulsante
+- [WIRING_GUIDE.md](06-Hardware-Integration/WIRING_GUIDE.md) — Schema elettronico leggibile e regole di cablaggio su breadboard
+- [AUDIO_ARCHITECTURE.md](06-Hardware-Integration/AUDIO_ARCHITECTURE.md) — Strategia audio bidirezionale su USB-CDC, formati PCM, banda, buffer e interruzioni
+- [USB_PROTOCOL.md](06-Hardware-Integration/USB_PROTOCOL.md) — Protocollo binario multiplexato retrocompatibile con i comandi degli occhi
+- [HARDWARE_TEST_PLAN.md](06-Hardware-Integration/HARDWARE_TEST_PLAN.md) — Piano di collaudo progressivo in 5 test indipendenti
+- [HARDWARE_CHECKLIST.md](06-Hardware-Integration/HARDWARE_CHECKLIST.md) — Checklist elettrica all'arrivo e verifica meccanica per `jarvis_lego_bot_companion_hybrid_v2_visor.mpd`
+- [GITHUB_REPOS_ANALYSIS.md](06-Hardware-Integration/GITHUB_REPOS_ANALYSIS.md) — Analisi tecnica e licenze dei repository GitHub di riferimento (`xiaozhi-esp32`, `xiaozhi-esp32-server`, `Carmoruda/Jarvis`, `deskbuddy`, `blinky-desk-companion`)
 
 ---
 

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Manuale 3 — Costruzione LEGO Companion v2</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-badge">Manuale 3 di 5 · Struttura LEGO</span>
+      <h1>Costruzione LEGO<br/>Companion Hybrid v2</h1>
+      <p class="cover-sub">
+        Istruzioni costruttive ufficiali basate sul modello definitivo
+        <strong>Companion Hybrid v2 — Visiera Capsula Arrotondata SNOT</strong>
+        (<code>jarvis_lego_bot_companion_hybrid_v2_visor.mpd</code>).
+      </p>
+      <div class="cover-card">
+        <h3>Dati verificati del modello</h3>
+        <p>
+          <strong>144 pezzi totali</strong> (33 lotti unici): <strong>26 pezzi</strong> per la Base Fissa B1
+          e <strong>118 pezzi</strong> per il Corpo Removibile A con visiera arrotondata SNOT e portello posteriore apribile.
+        </p>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <span>JARVIS AI Desk Buddy · FASE 6.1</span>
+      <span>Formato A4 · Italiano</span>
+    </div>
+  </section>
+
+  <div class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#sec-1">Vista Generale e Dimensioni</a></li>
+      <li><a href="#sec-2">Viste Tecniche e Verifica Frontale Visiera</a></li>
+      <li><a href="#sec-3">Distinta LEGO Riepilogativa per Modulo</a></li>
+      <li><a href="#sec-4">Montaggio Modulo B1 — Base Fissa (26 pezzi)</a></li>
+      <li><a href="#sec-5">Montaggio Modulo A — Corpo Companion e Visiera SNOT (118 pezzi)</a></li>
+      <li><a href="#sec-6">Accesso Elettronica, Corpo Removibile e Base Mobile 2WD</a></li>
+    </ol>
+  </div>
+
+  <h2 id="sec-1">1. Vista Generale e Dimensioni</h2>
+  <ul>
+    <li><strong>Base fissa (Modulo B1):</strong> impronta <code>12 × 12 stud</code> (<code>96,0 × 96,0 mm</code>), angoli arrotondati Dark Bluish Gray (DBG).</li>
+    <li><strong>Corpo Companion (Modulo A):</strong> impronta <code>10 × 10 stud</code> (<code>80,0 × 80,0 mm</code>), altezza <code>L0–L10</code> (~<code>96 mm</code>), spigoli arrotondati <code>85080</code>.</li>
+    <li><strong>Finestra visiera:</strong> apertura netta a capsula <code>32,0 × 16,0 mm</code> (<code>R = 8 mm</code>) incassata di <code>0,8 mm</code>, con <code>0</code> stud visibili attorno allo schermo OLED.</li>
+  </ul>
+
+  <h2 id="sec-2">2. Viste Tecniche e Verifica Frontale Visiera</h2>
+  <div class="figure">
+    <img src="assets/05_companion_hybrid_v2_visor_4views.svg" alt="Viste ortogonali Companion Hybrid v2 Visor" />
+    <div class="figure-caption">Figura 3.1 — Viste tecniche generate dal modello reale Companion Hybrid v2 (Visiera Capsula Arrotondata SNOT).</div>
+  </div>
+
+  <div class="figure">
+    <img src="assets/04_verifica_frontale_oled_confronto.svg" alt="Verifica frontale OLED rispetto alla visiera" />
+    <div class="figure-caption">Figura 3.2 — Confronto frontale tra apertura visiera (32 × 16 mm) e area attiva del display OLED 1,3".</div>
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>Parti provvisorie in attesa dei componenti fisici:</strong>
+    La struttura esterna LEGO e la visiera SNOT sono <strong>100% collegate su stud reali</strong>. Il fissaggio posteriore
+    del PCB OLED (striscia EPDM/EVA o culla interna a <code>Z = 12,0..15,0 mm</code>) e l'isolamento acustico dello
+    speaker 4 Ω / 3 W restano <strong>provvisori</strong> fino alla misurazione con calibro dei moduli reali.
+    <em>Nota:</em> le viste fotografiche reali del montaggio fisico saranno possibili solo dopo l'assemblaggio.
+  </div>
+
+  <h2 id="sec-3">3. Distinta LEGO Riepilogativa per Modulo</h2>
+  <p>
+    La distinta completa riga per riga è salvata in <code>03-Mechanical-Design/10-Restyling-LEGO-Companion/LEGO_BOM_Companion_Hybrid_v2_Visor.csv</code>
+    (e lista BrickLink <code>BrickLink_Wanted_List_Companion_Hybrid_v2_Visor.xml</code>).
+  </p>
+  <table>
+    <thead>
+      <tr><th>Modulo</th><th>Pezzi</th><th>Elementi Chiave</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Modulo B1 — Base Fissa</strong></td>
+        <td><strong>26</strong></td>
+        <td><code>2× 3036</code>, <code>1× 3035</code>, <code>1× 3031</code>, <code>4× 25269</code>, <code>2× 3702</code>, <code>2× 3009</code>, <code>4× 32054</code> (pin 3L)</td>
+      </tr>
+      <tr>
+        <td><strong>Modulo A — Corpo + Visiera</strong></td>
+        <td><strong>118</strong></td>
+        <td><code>85080</code> (Macaroni), <code>27925</code> (Visiera/Tetto), <code>87087</code> (SNOT), <code>3710</code>, <code>32316</code> (guida ESP32), <code>3036</code> (portello), <code>98138</code> (Medium Azure)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-4" class="page-break">4. Montaggio Modulo B1 — Base Fissa (26 pezzi)</h2>
+  <ol>
+    <li><strong>Piastra di fondazione (<code>12×12 stud</code>):</strong> affianca <code>2× 3036</code> (Plate 6×8 Black), <code>1× 3035</code> (Plate 4×8 Black) e <code>1× 3031</code> (Plate 4×4 Black).</li>
+    <li><strong>Cornice perimetrale liscia DBG:</strong> posa <code>4× 25269</code> (Tile Round 1×1 Quarter) ai 4 angoli e chiudi i bordi con <code>2× 6636</code>, <code>4× 2431</code> e <code>4× 3069b</code>.</li>
+    <li><strong>Anello di innesto centrale (<code>8×8 stud</code>):</strong> posa <code>2× 3702</code> (Technic Brick 1×8 Black) sui fianchi e <code>2× 3009</code> (Brick 1×6 DBG) fronte/retro. Inserisci i <code>4× 32054</code> (Technic Pin Long 3L) nei fori dei <code>3702</code> per l'aggancio rapido del corpo.</li>
+  </ol>
+
+  <h2 id="sec-5">5. Montaggio Modulo A — Corpo e Visiera SNOT (118 pezzi)</h2>
+  <ol>
+    <li><strong>Livello L0 (innesto):</strong> crea l'anello <code>8×8</code> con <code>2× 3702</code>, <code>1× 3008</code> frontale e <code>2× 3005</code> posteriori ai lati del passaggio cavo USB-C.</li>
+    <li><strong>Livello L1 (zoccolo DBG + accenti):</strong> <code>4× 85080</code> DBG agli spigoli, <code>2× 3009</code> DBG ai fianchi; sul frontale <code>1× 3010</code> centrale e <code>2× 4070</code> (Headlight) con <code>2× 98138</code> <em>Medium Azure</em>.</li>
+    <li><strong>Livello L2 (soglia finestra):</strong> spigoli <code>85080</code> Black, fianchi <code>3008</code> Black, retro <code>2× 87087</code> (stud verso <code>+Z</code> per portello); sul fronte <code>1× 3010</code> + <code>1× 2431</code> (Tile 1×4 liscia) e <code>2× 3005</code> arretrati.</li>
+    <li><strong>Livelli L3–L6 (pareti, pulsante e colonne SNOT):</strong> prosegui spigoli/pareti (su L3 sinistro inserisci <code>87087 + 98138</code> per il pulsante laterale; su L6 posteriore <code>2× 87087</code> per chiusura portello). Costruisci le 2 colonne SNOT frontali impilando per lato: <code>3005</code> (L3) → <code>87087</code> stud in avanti (L4) → <code>2× 3024</code> → <code>87087</code> stud in avanti (L6) → <code>3070b</code> tile.</li>
+    <li><strong>Visiera "Capsula Arrotondata":</strong> pre-assembla arco superiore e inferiore (<code>2× 27925</code> + <code>1× 3069b</code> bloccati dietro da <code>1× 3710</code>) e premili sui 4 stud frontali dei <code>87087</code>.</li>
+    <li><strong>Livelli L7–L8, guida interna e tetto:</strong> chiudi L7–L8 (lasciando foro microfono su L8 destro con <code>3700</code>), fissa la guida verticale interna <code>32316</code> DBG a <code>Z = 54 mm</code>, monta il tetto curvo (<code>27925</code>, <code>3795</code>, <code>15068</code>, <code>85984</code> e griglia speaker <code>4162</code>) e aggancia il portello posteriore <code>3036 + 3069b</code>.</li>
+  </ol>
+
+  <h2 id="sec-6">6. Accesso Elettronica, Corpo Removibile e Base Mobile 2WD</h2>
+  <ul>
+    <li><strong>Accesso senza smontare:</strong> sganciando a trazione il portello posteriore <code>3036</code> si apre un vano netto di <code>48,0 × 57,6 mm</code> per inserire/estrarre OLED 1,3", ESP32-S3 e cablaggi.</li>
+    <li><strong>Corpo removibile e Base B2 2WD:</strong> i 4 pin Technic <code>32054</code> consentono di sollevare il Modulo A dalla Base Fissa B1 e appoggiarlo in futuro sulla <strong>Base Mobile 2WD (Modulo B2)</strong> documentata in <code>03-Mechanical-Design/05-Mobile-Electronics/</code>.</li>
+  </ul>
+</body>
+</html>

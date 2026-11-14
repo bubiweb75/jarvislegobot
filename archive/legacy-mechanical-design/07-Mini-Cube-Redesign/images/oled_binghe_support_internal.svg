@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="600" viewBox="0 0 980 600" style="background:#f8f9fa">
+<text x="490" y="28" font-family="Segoe UI,Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#111">FASE D (Passaggio A) — Sezione Interna, Supporto Regolabile 3D e Percorso 4 Fili I²C</text>
+
+<!-- PANEL 1: SEZIONE LATERALE INTERNA (Z=0..80 mm, Y_h=0..96 mm) -->
+<text x="228.0" y="58" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">1. Sezione Laterale (Z vs Altezza)</text>
+<rect x="60.0" y="75.0" width="336.0" height="403.20000000000005" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<!-- Parete frontale (con finestra 38.4..57.6 aperta) -->
+<rect x="60.0" y="316.92" width="33.6" height="161.28" fill="#20242b"/>
+<rect x="60.0" y="101.88000000000002" width="33.6" height="134.4" fill="#20242b"/>
+<rect x="60.0" y="75.0" width="33.6" height="26.880000000000003" fill="#2b303a"/>
+<!-- Tetto Plate 28-30 -->
+<rect x="60.0" y="101.88000000000002" width="67.2" height="13.440000000000001" fill="#20242b"/>
+<rect x="328.8" y="101.88000000000002" width="67.2" height="13.440000000000001" fill="#20242b"/>
+<rect x="60.0" y="75.0" width="336.0" height="26.880000000000003" fill="#323842" fill-opacity="0.7"/>
+<!-- Parete posteriore + Sportello -->
+<rect x="362.40000000000003" y="101.88000000000002" width="33.6" height="376.32" fill="#20242b"/>
+
+<!-- Speaker AS03604AR (Z=22..58, Y_h=80.8..89.6) -->
+<rect x="152.4" y="101.88000000000002" width="151.20000000000002" height="36.96000000000001" fill="#cfd8dc" stroke="#455a64"/>
+<text x="228.0" y="125.4" font-family="Segoe UI,Arial" font-size="9" text-anchor="middle" fill="#111">AS03604AR</text>
+
+<!-- MAX98357A (Z=20.8..40.8, Y_h=10..30) -->
+<rect x="147.36" y="352.2" width="84.0" height="84.0" fill="#b3e5fc" stroke="#0277bd"/>
+<text x="189.36" y="398.40000000000003" font-family="Segoe UI,Arial" font-size="9" text-anchor="middle" fill="#01579b">MAX98357A</text>
+
+<!-- ESP32-S3 Layout C (Z=50..72, Y_h=16..79) -->
+<rect x="270.0" y="146.4" width="89.88" height="264.6" fill="#c8e6c9" stroke="#2e7d32"/>
+<text x="314.94000000000005" y="276.6" font-family="Segoe UI,Arial" font-size="9" text-anchor="middle" fill="#1b5e20">ESP32-S3</text>
+
+<!-- OLED Vetro (Z=8..9.4, Y_h=36.5..59.5) + PCB (Z=9.4..11, Y_h=31..65) -->
+<rect x="93.6" y="228.3" width="5.88" height="96.60000000000001" fill="#ff9800"/>
+<rect x="99.48" y="205.20000000000002" width="6.720000000000001" height="142.8" fill="#0288d1"/>
+<!-- Header 4-pin superiore (Z=11..18, Y_h=65..79) -->
+<rect x="106.2" y="146.4" width="29.400000000000002" height="58.800000000000004" fill="#ffeb3b" stroke="#f57f17"/>
+<!-- Culla 3D regolabile (Z=11..17.5, Y_h=27..67) -->
+<rect x="106.2" y="339.6" width="27.3" height="25.200000000000003" fill="#78909c" stroke="#263238"/>
+<rect x="106.2" y="209.4" width="27.3" height="16.8" fill="#78909c" stroke="#263238"/>
+<rect x="123.0" y="209.4" width="10.5" height="130.20000000000002" fill="#78909c" stroke="#263238"/>
+
+<!-- Percorso 4 fili I2C (GND, VCC, SCL=42, SDA=41) -->
+<path d="M 123.0 159.0 C 160.8 146.4, 211.20000000000002 159.0, 270.0 192.60000000000002" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-dasharray="5,2"/>
+<text x="202.8" y="173.7" font-family="Segoe UI,Arial" font-size="9" font-weight="bold" text-anchor="middle" fill="#b71c1c">4 fili I²C (sotto speaker)</text>
+
+<!-- PANEL 2: DISEGNO QUOTATO SUPPORTO 3D REGOLABILE -->
+<text x="680" y="58" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">2. Culla 3D Regolabile (Vista Posteriore Quotata)</text>
+<rect x="460" y="75" width="480" height="250" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+<!-- Corpo culla 44x42 mm (scala 4x -> 176x168 px) -->
+<rect x="572" y="105" width="176" height="168" rx="4" fill="#cfd8dc" stroke="#37474f" stroke-width="1.5"/>
+<!-- Alette asolate LEGO (ancoraggio SX/DX con asole +/-2.5 mm) -->
+<rect x="524" y="155" width="48" height="68" rx="3" fill="#b0bec5" stroke="#37474f"/>
+<rect x="748" y="155" width="48" height="68" rx="3" fill="#b0bec5" stroke="#37474f"/>
+<rect x="538" y="176" width="20" height="26" rx="6" fill="#ffffff" stroke="#37474f"/>
+<rect x="762" y="176" width="20" height="26" rx="6" fill="#ffffff" stroke="#37474f"/>
+<!-- Tasca PCB 36x34 mm (144x136 px) -->
+<rect x="588" y="121" width="144" height="136" fill="#eceff1" stroke="#0288d1" stroke-dasharray="4,2"/>
+<!-- Scasso superiore connettore 4 pin (20x10 mm) -->
+<rect x="620" y="105" width="80" height="22" fill="#ffffff" stroke="#f57f17" stroke-width="1.2"/>
+<text x="660" y="120" font-family="Segoe UI,Arial" font-size="9.5" text-anchor="middle" fill="#e65100">Scasso 4 pin sup.</text>
+<!-- Scarico inferiore FPC flex -->
+<rect x="628" y="246" width="64" height="27" fill="#ffffff" stroke="#546e7a" stroke-dasharray="3,2"/>
+<text x="660" y="263" font-family="Segoe UI,Arial" font-size="9" text-anchor="middle" fill="#37474f">Scarico flex inf.</text>
+<text x="660" y="192" font-family="Segoe UI,Arial" font-size="10.5" font-weight="bold" text-anchor="middle" fill="#01579b">Tasca PCB 36×34 mm</text>
+<text x="660" y="208" font-family="Segoe UI,Arial" font-size="9.5" text-anchor="middle" fill="#333">(scarico vetro 1,8 mm, no pressione)</text>
+<text x="660" y="305" font-family="Segoe UI,Arial" font-size="10.5" text-anchor="middle" fill="#111">Larghezza totale con alette: 56 mm | Regolazione fine X/Y: ±2,5 mm | Profondità: 6,5 mm (Z=11..17,5)</text>
+
+<!-- PANEL 3: ESPLOSO MONTAGGIO + CABLAGGIO -->
+<text x="680" y="355" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">3. Sequenza di Montaggio &amp; Smontaggio (da Sportello Posteriore)</text>
+<rect x="460" y="370" width="480" height="190" rx="8" fill="#eef1f4" stroke="#cbd2d9"/>
+<text x="480" y="396" font-family="Segoe UI,Arial" font-size="11" font-weight="bold" fill="#111">1. Parete Frontale LEGO (Z=0..8 mm) → Finestra 32,0 × 19,2 mm</text>
+<text x="480" y="420" font-family="Segoe UI,Arial" font-size="11" fill="#333">2. Pannello OLED (Z=8..11 mm) inserito dal retro, centrato otticamente</text>
+<text x="480" y="444" font-family="Segoe UI,Arial" font-size="11" fill="#333">3. Culla 3D Regolabile (Z=11..17,5 mm) fissata con 2× perni/viti asolate</text>
+<text x="480" y="468" font-family="Segoe UI,Arial" font-size="11" fill="#333">4. Connettore 4 fili (GND, VCC 3,3V, SCL=GPIO42, SDA=GPIO41)</text>
+<text x="480" y="492" font-family="Segoe UI,Arial" font-size="11" fill="#333">5. Chiusura tramite sportello SNOT posteriore 6×8 (zero smontaggio pareti)</text>
+<text x="480" y="528" font-family="Segoe UI,Arial" font-size="10.5" font-weight="bold" fill="#b71c1c">Nota: Modello 3D separato da validare solo dopo misura reale di fori e offset area attiva.</text>
+</svg>

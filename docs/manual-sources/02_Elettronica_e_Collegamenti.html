@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Manuale 2 — Elettronica e Collegamenti</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-badge">Manuale 2 di 5 · Hardware &amp; Cablaggio</span>
+      <h1>Elettronica e<br/>Collegamenti</h1>
+      <p class="cover-sub">
+        Guida pratica passo passo per collegare su breadboard ESP32-S3 N16R8, display OLED 1,3",
+        microfono INMP441, amplificatore MAX98357A, speaker 4 Ω / 3 W e pulsante in piena sicurezza.
+      </p>
+      <div class="cover-card">
+        <h3>Avvertenza preliminare</h3>
+        <p>
+          Tutti i collegamenti devono essere eseguiti <strong>a cavo USB scollegato</strong>.
+          Prima di alimentare, verificare sempre la serigrafia reale dei moduli ricevuti (ordine pin
+          <code>VCC/GND</code> su OLED e pin <code>SD/GAIN</code> su MAX98357A).
+        </p>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <span>JARVIS AI Desk Buddy · FASE 6.1</span>
+      <span>Formato A4 · Italiano</span>
+    </div>
+  </section>
+
+  <div class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#sec-1">Elenco Componenti e Tensioni di Lavoro</a></li>
+      <li><a href="#sec-2">Scheda ESP32-S3-DevKitC-1 N16R8 e Pin Vietati</a></li>
+      <li><a href="#sec-3">Tabella Pinout Completa (Verificato vs Da Confermare)</a></li>
+      <li><a href="#sec-4">Schema Grafico dei Collegamenti a Colori</a></li>
+      <li><a href="#sec-5">Montaggio Passo Passo su Breadboard</a></li>
+      <li><a href="#sec-6">Precauzioni Elettriche Critiche e Diagnostica</a></li>
+    </ol>
+  </div>
+
+  <h2 id="sec-1">1. Elenco Componenti e Tensioni di Lavoro</h2>
+  <table>
+    <thead>
+      <tr><th>Componente</th><th>Tensione</th><th>Interfaccia</th><th>Ruolo in JARVIS</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>ESP32-S3-DevKitC-1 N16R8</strong></td><td>5 V (USB) / 3,3 V logica</td><td>USB-CDC, I²C, I²S</td><td>Cervello hardware, occhi OLED, ponte audio</td></tr>
+      <tr><td><strong>Display OLED 1,3" (128×64)</strong></td><td>3,3 V</td><td>I²C (<code>0x3C</code> tipico)</td><td>Visualizza gli occhi animati (SH1106 / SSD1306)</td></tr>
+      <tr><td><strong>Microfono INMP441</strong></td><td><strong>SOLO 3,3 V</strong></td><td>I²S0 RX (ingresso)</td><td>Cattura la voce in italiano a 16 kHz</td></tr>
+      <tr><td><strong>Amplificatore MAX98357A</strong></td><td><strong>5 V (VIN)</strong> · 3,3 V logica</td><td>I²S1 TX (uscita)</td><td>Amplifica l'audio mono fino a 3 W</td></tr>
+      <tr><td><strong>Speaker 4 Ω / 3 W (JST-PH2.0)</strong></td><td>Uscita BTL da MAX98357A</td><td>Analogica diff.</td><td>Riproduce la voce di JARVIS</td></tr>
+      <tr><td><strong>Pulsante momentaneo NO</strong></td><td>3,3 V (Pull-up interno)</td><td>Digitale (Active LOW)</td><td>Attiva l'ascolto o cambia espressione</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-2">2. Scheda ESP32-S3-DevKitC-1 N16R8 e Pin Vietati</h2>
+  <p>
+    La versione <code>N16R8</code> integra <strong>8 MB di PSRAM Octal</strong>. Alcuni pin sono usati internamente
+    o riservati al boot e <strong>non devono mai essere collegati</strong> a periferiche esterne:
+  </p>
+  <ul>
+    <li><strong>GPIO 35, 36, 37:</strong> riservati alla PSRAM Octal interna (l'uso provoca crash immediato).</li>
+    <li><strong>GPIO 0, 3, 45, 46:</strong> pin di bootstrap hardware (<code>BOOT</code> e tensioni Flash).</li>
+    <li><strong>GPIO 19, 20:</strong> porta USB nativa (<code>D-</code>, <code>D+</code>) usata per il collegamento al PC.</li>
+    <li><strong>GPIO 43, 44:</strong> console <code>UART0</code>; <strong>GPIO 38 / 48:</strong> LED RGB onboard.</li>
+    <li><strong>Pin <code>RST / EN</code> (spesso su <code>J1-3</code> vicino a <code>3V3</code>):</strong> reset della scheda — <strong>mai collegare a <code>GND</code></strong>.</li>
+  </ul>
+
+  <h2 id="sec-3">3. Tabella Pinout Completa (Verificato vs Da Confermare)</h2>
+  <table>
+    <thead>
+      <tr><th>Periferica</th><th>Pin Modulo</th><th>Pin ESP32-S3</th><th>Colore Cavo</th><th>Stato Verifica</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>OLED 1,3"</strong></td><td><code>VCC</code> / <code>GND</code></td><td><code>3V3</code> / <code>GND</code></td><td>Rosso / Nero</td><td><span class="badge b-wait">Verificare ordine su PCB</span></td></tr>
+      <tr><td><strong>OLED 1,3"</strong></td><td><code>SDA</code> / <code>SCL</code></td><td><code>GPIO 41</code> / <code>GPIO 42</code></td><td>Blu / Giallo</td><td><span class="badge b-ok">Verificato in pinout_config.h</span></td></tr>
+      <tr><td><strong>INMP441</strong></td><td><code>VDD</code> / <code>GND</code> / <code>L/R</code></td><td><code>3V3</code> / <code>GND</code> / <code>GND</code></td><td>Rosso / Nero / Nero</td><td><span class="badge b-ok">Verificato (solo 3,3V)</span></td></tr>
+      <tr><td><strong>INMP441</strong></td><td><code>WS</code> / <code>SCK</code> / <code>SD</code></td><td><code>GPIO 4</code> / <code>5</code> / <code>6</code></td><td>Verde / Bianco / Viola</td><td><span class="badge b-ok">Verificato (I²S0 RX)</span></td></tr>
+      <tr><td><strong>MAX98357A</strong></td><td><code>VIN</code> / <code>GND</code></td><td><code>5V</code> / <code>GND</code></td><td>Arancio / Nero</td><td><span class="badge b-ok">Verificato (VIN solo 5V)</span></td></tr>
+      <tr><td><strong>MAX98357A</strong></td><td><code>SD</code> / <code>GAIN</code></td><td><code>3V3</code> / Non collegato</td><td>Grigio / —</td><td><span class="badge b-wait">Confermare su modulo</span></td></tr>
+      <tr><td><strong>MAX98357A</strong></td><td><code>DIN</code> / <code>BCLK</code> / <code>LRC</code></td><td><code>GPIO 7</code> / <code>15</code> / <code>16</code></td><td>Verde / Giallo / Blu</td><td><span class="badge b-ok">Verificato (I²S1 TX)</span></td></tr>
+      <tr><td><strong>Speaker 4Ω</strong></td><td><code>+</code> / <code>-</code></td><td><strong>MAX98357A <code>OUT+</code> / <code>OUT-</code></strong></td><td>Rosso / Nero (JST)</td><td><span class="badge b-no">Mai su GPIO o GND</span></td></tr>
+      <tr><td><strong>Pulsante NO</strong></td><td>Pin A / Pin B</td><td><code>GPIO 47</code> / <code>GND</code></td><td>Azzurro / Nero</td><td><span class="badge b-ok">Verificato in pinout_config.h</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-4" class="page-break">4. Schema Grafico dei Collegamenti a Colori</h2>
+  <div class="figure">
+    <svg viewBox="0 0 760 440" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <!-- Power Rails -->
+      <rect x="20" y="14" width="720" height="22" rx="4" fill="#FEF2F2" stroke="#DC2626"/>
+      <text x="380" y="29" fill="#991B1B" font-size="10" font-weight="bold" text-anchor="middle">RAIL +5V (VBUS USB) — Alimenta SOLO MAX98357A VIN</text>
+
+      <rect x="20" y="42" width="720" height="22" rx="4" fill="#FFFBEB" stroke="#D97706"/>
+      <text x="380" y="57" fill="#92400E" font-size="10" font-weight="bold" text-anchor="middle">RAIL +3.3V — Alimenta OLED VCC, INMP441 VDD e MAX98357A SD</text>
+
+      <!-- ESP32 Center -->
+      <rect x="265" y="95" width="230" height="260" rx="10" fill="#0F172A" stroke="#38BDF8" stroke-width="2"/>
+      <text x="380" y="120" fill="#FFFFFF" font-size="13" font-weight="bold" text-anchor="middle">ESP32-S3-DevKitC-1</text>
+      <text x="380" y="136" fill="#38BDF8" font-size="9.5" text-anchor="middle">WROOM-1-N16R8</text>
+      <rect x="330" y="325" width="100" height="26" rx="4" fill="#1E293B" stroke="#94A3B8"/>
+      <text x="380" y="342" fill="#E2E8F0" font-size="9" font-weight="bold" text-anchor="middle">Porta USB → PC</text>
+
+      <!-- Left pins -->
+      <text x="275" y="165" fill="#93C5FD" font-size="9.5" font-weight="bold">GPIO 4 (WS)</text>
+      <text x="275" y="185" fill="#93C5FD" font-size="9.5" font-weight="bold">GPIO 5 (SCK)</text>
+      <text x="275" y="205" fill="#93C5FD" font-size="9.5" font-weight="bold">GPIO 6 (SD)</text>
+      <text x="275" y="245" fill="#FDE68A" font-size="9.5" font-weight="bold">GPIO 7 (DIN)</text>
+      <text x="275" y="265" fill="#FDE68A" font-size="9.5" font-weight="bold">GPIO 15 (BCLK)</text>
+      <text x="275" y="285" fill="#FDE68A" font-size="9.5" font-weight="bold">GPIO 16 (LRC)</text>
+
+      <!-- Right pins -->
+      <text x="485" y="165" fill="#67E8F9" font-size="9.5" font-weight="bold" text-anchor="end">GPIO 41 (SDA)</text>
+      <text x="485" y="185" fill="#67E8F9" font-size="9.5" font-weight="bold" text-anchor="end">GPIO 42 (SCL)</text>
+      <text x="485" y="245" fill="#CBD5E1" font-size="9.5" font-weight="bold" text-anchor="end">GPIO 47 (BTN)</text>
+
+      <!-- INMP441 -->
+      <rect x="20" y="120" width="175" height="105" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+      <text x="107" y="140" fill="#166534" font-size="11" font-weight="bold" text-anchor="middle">INMP441 (Mic I²S0)</text>
+      <text x="30" y="160" fill="#1E293B" font-size="9">VDD ← 3.3V · L/R ← GND</text>
+      <text x="30" y="176" fill="#1E293B" font-size="9">WS  ← GPIO 4 (Verde)</text>
+      <text x="30" y="192" fill="#1E293B" font-size="9">SCK ← GPIO 5 (Bianco)</text>
+      <text x="30" y="208" fill="#1E293B" font-size="9">SD  → GPIO 6 (Viola)</text>
+
+      <line x1="195" y1="162" x2="265" y2="162" stroke="#16A34A" stroke-width="2.2"/>
+      <line x1="195" y1="182" x2="265" y2="182" stroke="#64748B" stroke-width="2.2"/>
+      <line x1="195" y1="202" x2="265" y2="202" stroke="#7C3AED" stroke-width="2.2"/>
+
+      <!-- MAX98357A -->
+      <rect x="20" y="240" width="175" height="125" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/>
+      <text x="107" y="258" fill="#92400E" font-size="11" font-weight="bold" text-anchor="middle">MAX98357A (Ampli)</text>
+      <text x="30" y="276" fill="#1E293B" font-size="9">VIN ← 5V · SD ← 3.3V</text>
+      <text x="30" y="292" fill="#1E293B" font-size="9">DIN  ← GPIO 7 (Verde)</text>
+      <text x="30" y="308" fill="#1E293B" font-size="9">BCLK ← GPIO 15 (Giallo)</text>
+      <text x="30" y="324" fill="#1E293B" font-size="9">LRC  ← GPIO 16 (Blu)</text>
+      <text x="30" y="348" fill="#DC2626" font-size="9" font-weight="bold">OUT+ / OUT- → Speaker 4Ω</text>
+
+      <line x1="195" y1="242" x2="265" y2="242" stroke="#16A34A" stroke-width="2.2"/>
+      <line x1="195" y1="262" x2="265" y2="262" stroke="#EAB308" stroke-width="2.2"/>
+      <line x1="195" y1="282" x2="265" y2="282" stroke="#0284C7" stroke-width="2.2"/>
+
+      <!-- OLED -->
+      <rect x="565" y="120" width="175" height="95" rx="8" fill="#F0F9FF" stroke="#0284C7" stroke-width="2"/>
+      <text x="652" y="140" fill="#0369A1" font-size="11" font-weight="bold" text-anchor="middle">OLED 1,3" I²C</text>
+      <text x="575" y="160" fill="#1E293B" font-size="9">VCC ← 3.3V · GND ← GND</text>
+      <text x="575" y="178" fill="#1E293B" font-size="9">SDA ↔ GPIO 41 (Blu)</text>
+      <text x="575" y="196" fill="#1E293B" font-size="9">SCL ← GPIO 42 (Giallo)</text>
+
+      <line x1="495" y1="162" x2="565" y2="162" stroke="#0284C7" stroke-width="2.5"/>
+      <line x1="495" y1="182" x2="565" y2="182" stroke="#EAB308" stroke-width="2.5"/>
+
+      <!-- Button -->
+      <rect x="565" y="232" width="175" height="72" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="2"/>
+      <text x="652" y="252" fill="#0F172A" font-size="11" font-weight="bold" text-anchor="middle">Pulsante NO</text>
+      <text x="575" y="272" fill="#1E293B" font-size="9">Pin A → GPIO 47 (Azzurro)</text>
+      <text x="575" y="290" fill="#1E293B" font-size="9">Pin B → GND (Nero)</text>
+
+      <line x1="495" y1="242" x2="565" y2="242" stroke="#38BDF8" stroke-width="2.2"/>
+
+      <!-- GND Rail -->
+      <rect x="20" y="385" width="720" height="24" rx="4" fill="#1E293B"/>
+      <text x="380" y="401" fill="#F8FAFC" font-size="10" font-weight="bold" text-anchor="middle">RAIL GND COMUNE (ESP32-S3, OLED, INMP441 GND + L/R, MAX98357A GND, Pulsante) — MAI OUT-/OUT+!</text>
+
+      <!-- Legend -->
+      <text x="20" y="430" fill="#475569" font-size="8.5" font-weight="bold">
+        Legenda colori consigliati: Rosso = +3,3V | Arancio = +5V | Nero = GND | Blu/Giallo = I²C | Verde/Viola/Bianco = I²S
+      </text>
+    </svg>
+    <div class="figure-caption">Figura 2.1 — Schema completo dei collegamenti elettrici e legenda cavi.</div>
+  </div>
+
+  <h2 id="sec-5">5. Montaggio Passo Passo su Breadboard</h2>
+  <ol>
+    <li><strong>Preparazione a freddo:</strong> scollega ogni cavo USB dal PC.</li>
+    <li><strong>Posiziona l'ESP32-S3-DevKitC-1</strong> a cavallo del canale centrale della breadboard (oppure su due breadboard affiancate se la scheda è larga).</li>
+    <li><strong>Crea i bus comuni:</strong> porta <code>3V3</code> e <code>GND</code> sui rail laterali della breadboard. <strong>Controlla che <code>J1-3 (RST)</code> resti libero.</strong></li>
+    <li><strong>Collega prima OLED (4 fili) e Pulsante (2 fili)</strong> per eseguire il <em>Test 1</em> prima di aggiungere l'audio.</li>
+    <li><strong>Aggiungi il MAX98357A + Speaker</strong> alimentando <code>VIN</code> da <code>5V</code> e collegando lo speaker solo a <code>OUT+</code>/<code>OUT-</code>.</li>
+    <li><strong>Aggiungi l'INMP441</strong> verificando <code>VDD</code> su <code>3V3</code> e <code>L/R</code> su <code>GND</code>.</li>
+  </ol>
+
+  <h2 id="sec-6">6. Precauzioni Elettriche Critiche e Diagnostica</h2>
+  <div class="callout callout-danger">
+    <strong>Regole salva-componenti (da non violare mai):</strong>
+    <ul>
+      <li><strong>Speaker 4 Ω / 3 W:</strong> collegare ESCLUSIVAMENTE a <code>MAX98357A OUT+ / OUT-</code>. Mai ai GPIO dell'ESP32-S3 e mai a <code>GND</code> (uscita Classe-D differenziale BTL).</li>
+      <li><strong>INMP441:</strong> alimentazione <strong>solo 3,3 V</strong> (5 V bruciano il microfono).</li>
+      <li><strong>MAX98357A:</strong> pin <code>VIN</code> collegato a <strong>5 V</strong> (non sovraccaricare il regolatore 3,3 V).</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Dipendenze Python per l'ambiente dedicato 05-Voice-AI\.venv:
+httpx>=0.28.0
+python-dotenv>=1.0.0
+pyserial>=3.5
+faster-whisper>=1.0.0

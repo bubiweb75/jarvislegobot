@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="590" viewBox="0 0 960 590" style="background:#f8f9fa">
+<text x="480" y="28" font-family="Segoe UI,Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#111">FASE D — Sezione Verticale Quotata del Display Installato (Soluzione 2B)</text>
+<rect x="70.0" y="70.0" width="416.0" height="499.20000000000005" fill="#ffffff" stroke="#9aa5b1"/>
+<!-- Parete frontale LEGO sopra (L7-8: 67.2..89.6) e sotto (L0-2: 0..25.6) -->
+<rect x="70.0" y="436.08000000000004" width="41.6" height="133.12" fill="#20242b"/>
+<rect x="70.0" y="103.28000000000003" width="41.6" height="116.47999999999999" fill="#20242b"/>
+<rect x="70.0" y="70.0" width="416.0" height="33.28" fill="#2b303a" fill-opacity="0.7"/>
+<rect x="444.40000000000003" y="103.28000000000003" width="41.6" height="465.91999999999996" fill="#20242b"/>
+
+<!-- Cornice 3D (Z=0..8, Y_h=25.6..67.2) con finestra 38.4..57.6 e incasso 1.8 mm -->
+<rect x="70.0" y="369.52000000000004" width="41.6" height="66.56" fill="#37474f"/>
+<rect x="70.0" y="219.76" width="41.6" height="49.92" fill="#37474f"/>
+
+<!-- Vetro OLED (Z=2.15..3.55, Y_h=36.5..59.5) + PCB (Z=3.55..5.15, Y_h=28.7..62.7) -->
+<rect x="81.18" y="259.8" width="7.279999999999999" height="119.60000000000001" fill="#ff9800"/>
+<rect x="88.46000000000001" y="243.16" width="8.32" height="176.8" fill="#1565c0"/>
+<!-- Header 4 pin + cavo (Z=5.15..13.45, Y_h=58..74) -->
+<rect x="96.78" y="187.0" width="43.160000000000004" height="57.2" fill="#ffd54f" stroke="#f57f17"/>
+<!-- Culla 3D (Z=5.15..9.65) con scarico flex inferiore e apertura SMD -->
+<rect x="96.78" y="231.20000000000002" width="23.400000000000002" height="11.959999999999999" fill="#78909c"/>
+<rect x="96.78" y="419.96" width="23.400000000000002" height="13.0" fill="#78909c"/>
+
+<!-- Elettronica esistente -->
+<rect x="184.4" y="103.28000000000003" width="187.20000000000002" height="45.760000000000005" fill="#cfd8dc" stroke="#455a64"/>
+<text x="278.0" y="132.4" font-family="Segoe UI,Arial" font-size="9.5" text-anchor="middle" fill="#111">AS03604AR (Z=22..58)</text>
+<rect x="178.16000000000003" y="413.2" width="104.0" height="104.0" fill="#b3e5fc" stroke="#0277bd"/>
+<text x="230.16" y="470.40000000000003" font-family="Segoe UI,Arial" font-size="9.5" text-anchor="middle" fill="#01579b">MAX98357A (Z=20.8..40.8)</text>
+<rect x="330.0" y="158.4" width="111.28" height="327.6" fill="#c8e6c9" stroke="#2e7d32"/>
+<text x="385.64000000000004" y="319.6" font-family="Segoe UI,Arial" font-size="9.5" text-anchor="middle" fill="#1b5e20">ESP32-S3 (Z=50..71.4)</text>
+
+<!-- Cavi I2C -->
+<path d="M 140.2 210.4 C 194.8 184.4, 267.6 189.60000000000002, 330.0 231.20000000000002" fill="none" stroke="#d32f2f" stroke-width="2" stroke-dasharray="5,2"/>
+
+<!-- Annotazioni a destra -->
+<rect x="520" y="70" width="415" height="495" rx="8" fill="#eef1f4" stroke="#cbd2d9"/>
+<text x="727" y="96" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Analisi Quote &amp; Scomposizione 11,30 mm</text>
+<text x="538" y="126" font-family="Segoe UI,Arial" font-size="11" font-weight="bold" fill="#111">1. Scomposizione quota laterale 11,30 mm (provvisoria):</text>
+<text x="538" y="145" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Vetro OLED: ~1,40 mm (Z = 2,15..3,55 mm)</text>
+<text x="538" y="163" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• PCB: ~1,60 mm (Z = 3,55..5,15 mm)</text>
+<text x="538" y="181" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Header 4 pin + distanziale: ~8,30 mm (Z = 5,15..13,45)</text>
+<text x="538" y="199" font-family="Segoe UI,Arial" font-size="10.5" fill="#b71c1c">→ 11,30 mm NON è lo spessore del solo vetro/PCB!</text>
+
+<text x="538" y="232" font-family="Segoe UI,Arial" font-size="11" font-weight="bold" fill="#111">2. Asimmetria area attiva (7,35 mm da bordo sup. PCB):</text>
+<text x="538" y="251" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Centro area attiva a 14,70 mm dal top PCB</text>
+<text x="538" y="269" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Top PCB a Y_h = 62,70 mm; Fondo PCB a 28,7..29,2 mm</text>
+<text x="538" y="287" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Scarico inferiore aperto per flex FPC (M)</text>
+
+<text x="538" y="320" font-family="Segoe UI,Arial" font-size="11" font-weight="bold" fill="#111">3. Margini interni verificati (0 collisioni 3D):</text>
+<text x="538" y="339" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Davanti ad AS03604AR (Z=22): 8,55 mm liberi</text>
+<text x="538" y="357" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Davanti a MAX98357A (Z=20,8): 11,15 mm liberi</text>
+<text x="538" y="375" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Davanti a ESP32-S3 (Z=50): 36,55 mm liberi</text>
+
+<text x="538" y="408" font-family="Segoe UI,Arial" font-size="11" font-weight="bold" fill="#111">4. Modifica tasca LEGO frontale (solo in Passaggio B):</text>
+<text x="538" y="427" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• L3..L6: pilastri 3004 (1×2) ai lati -> apertura 48 mm</text>
+<text x="538" y="445" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• L2 centro (X=16..64): 2 plate (3666) -> Y_h=25,6 mm</text>
+<text x="538" y="463" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Risultato: tasca 48,0 × 41,6 mm, 0 coll. con 4070+3070b</text>
+</svg>

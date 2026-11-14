@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="620" viewBox="0 0 780 620" style="background:#f8f9fa">
+<text x="390" y="30" font-family="Segoe UI,Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#111">FASE D (Passaggio A) — Vista Frontale con OLED Binghe 1,3" (128×64)</text>
+
+<!-- Corpo LEGO 80x96 mm -->
+<rect x="60.0" y="70.0" width="400.0" height="480.0" fill="#20242b" stroke="#0b0d10" stroke-width="1.5"/>
+<!-- Trim DBG Layer 1 -->
+<rect x="60.0" y="454.0" width="400.0" height="48.0" fill="#20242b" stroke="#0b0d10"/>
+<!-- Corona superiore 49307/85984 -->
+<rect x="60.0" y="70.0" width="400.0" height="32.0" fill="#2b303a" stroke="#0b0d10"/>
+<line x1="100.0" y1="70.0" x2="100.0" y2="102.00000000000003" stroke="#111" stroke-width="1"/>
+<line x1="420.0" y1="70.0" x2="420.0" y2="102.00000000000003" stroke="#111" stroke-width="1"/>
+
+<!-- Accenti Medium Azure incassati a filo (Layer 2: X=8..16 e X=64..72, Y_h=19.2..28.8) -->
+<rect x="100.0" y="406.0" width="40.0" height="48.0" fill="#14171c" stroke="#0b0d10"/>
+<rect x="102.5" y="410.0" width="35.0" height="36.0" fill="#36aebf" stroke="#0b0d10"/>
+<rect x="380.0" y="406.0" width="40.0" height="48.0" fill="#14171c" stroke="#0b0d10"/>
+<rect x="382.5" y="410.0" width="35.0" height="36.0" fill="#36aebf" stroke="#0b0d10"/>
+
+<!-- Cornice OLED (Layer 3 DBG liscio + Layer 6 DBG) -->
+<rect x="180.0" y="358.0" width="160.0" height="48.0" fill="#6b727d" stroke="#0b0d10"/>
+<rect x="180.0" y="214.0" width="160.0" height="48.0" fill="#6b727d" stroke="#0b0d10"/>
+
+<!-- Ingombro vetro OLED dietro la parete (tratteggiato, 34.5x23 mm) -->
+<rect x="173.75" y="252.5" width="172.5" height="115.0" fill="none" stroke="#ff9800" stroke-width="1.2" stroke-dasharray="4,3"/>
+<!-- Ingombro PCB dietro la parete (tratteggiato, 36x34 mm) -->
+<rect x="170.0" y="225.0" width="180.0" height="170.0" fill="none" stroke="#4fc3f7" stroke-width="1.2" stroke-dasharray="6,3"/>
+
+<!-- Finestra LEGO 32.0 x 19.2 mm (Superficie nera continua OLED) -->
+<rect x="180.0" y="262.0" width="160.0" height="96.0" fill="#050608" stroke="#111" stroke-width="1.2"/>
+
+<!-- Area Attiva OLED 29.42 x 14.70 mm (128x64 px) -->
+<rect x="186.45" y="273.25" width="147.10000000000002" height="73.5" fill="#050608" stroke="#37474f" stroke-width="0.7" stroke-dasharray="2,2"/>
+
+<!-- Occhi digitali bianchi arrotondati (risoluzione 128x64 -> 29.42x14.70 mm) -->
+<rect x="210.0" y="287.0" width="36.0" height="46.0" rx="12.0" fill="#ffffff"/>
+<rect x="274.0" y="287.0" width="36.0" height="46.0" rx="12.0" fill="#ffffff"/>
+
+<!-- Quote e Legenda a destra -->
+<rect x="490" y="70" width="260" height="480" rx="8" fill="#eef1f4" stroke="#cbd2d9"/>
+<text x="620" y="98" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Quote &amp; Distinzione Componenti</text>
+
+<text x="508" y="130" font-family="Segoe UI,Arial" font-size="11.5" font-weight="bold" fill="#111">1. Finestra LEGO (invariata):</text>
+<text x="508" y="148" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Apertura netta: 32,0 × 19,2 mm</text>
+<text x="508" y="165" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Profondità tunnel parete: 8,0 mm</text>
+
+<text x="508" y="198" font-family="Segoe UI,Arial" font-size="11.5" font-weight="bold" fill="#111">2. Modulo OLED Binghe 1,3" (elettronica):</text>
+<line x1="508" y1="215" x2="532" y2="215" stroke="#4fc3f7" stroke-width="2" stroke-dasharray="5,2"/>
+<text x="540" y="219" font-family="Segoe UI,Arial" font-size="11" fill="#333">PCB: 36,0 × 34,0 mm (non LEGO)</text>
+<line x1="508" y1="235" x2="532" y2="235" stroke="#ff9800" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="540" y="239" font-family="Segoe UI,Arial" font-size="11" fill="#333">Vetro: 34,5 × 23,0 × 1,4 mm</text>
+<rect x="508" y="248" width="24" height="12" fill="#050608" stroke="#37474f" stroke-dasharray="2,2"/>
+<text x="540" y="258" font-family="Segoe UI,Arial" font-size="11" fill="#333">Area attiva: 29,42 × 14,70 mm</text>
+
+<text x="508" y="290" font-family="Segoe UI,Arial" font-size="11.5" font-weight="bold" fill="#111">3. Margini e Angolo di Visione:</text>
+<text x="508" y="308" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Margine teorico O: 1,29 mm / lato</text>
+<text x="508" y="325" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Margine teorico V: 2,25 mm / lato</text>
+<text x="508" y="342" font-family="Segoe UI,Arial" font-size="11" fill="#b71c1c">• Angolo max senza taglio: ~9,2° O / ~15,7° V</text>
+
+<text x="508" y="375" font-family="Segoe UI,Arial" font-size="11.5" font-weight="bold" fill="#111">4. Volto Digitale (128×64):</text>
+<text x="508" y="393" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Occhi bianchi su nero continuo</text>
+<text x="508" y="410" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Nessuna bocca, nessun occhio LEGO</text>
+<text x="508" y="427" font-family="Segoe UI,Arial" font-size="11" fill="#333">• Escluso dalla distinta LEGO</text>
+
+<text x="508" y="460" font-family="Segoe UI,Arial" font-size="11.5" font-weight="bold" fill="#b71c1c">5. Misure fisiche ancora da rilevare:</text>
+<text x="508" y="478" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Offset esatto area attiva rispetto a PCB</text>
+<text x="508" y="494" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Interasse reale dei 4 fori angolari</text>
+<text x="508" y="510" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Conferma controller (SH1106 vs SSD1106)</text>
+<text x="508" y="526" font-family="Segoe UI,Arial" font-size="10.5" fill="#333">• Spessore reale connettore + pin sup.</text>
+</svg>

@@ -1,0 +1,36 @@
+Codice_BrickLink,Element_ID_LEGO,Descrizione,Colore_BrickLink,Colore_BrickLink_ID,Colore_LDraw_ID,Quantita_Totale,Quantita_Modulo_A,Quantita_Modulo_B1,Stato_FASE_D,Note_Provvisorie
+15573,6092585,Plate Special 1 x 2 with 1 Stud with Groove and Inside Stud Holder (Jumper),Black,11,0,2,2,0,CONFERMATO,
+2431,4211053,Tile 1 x 4 with Groove,Dark Bluish Gray,85,72,3,1,2,PROVVISORIO (1 pz),1 pz in Mod.A (davanzale OLED L3) rimosso con cornice 2B
+3004,300426,Brick 1 x 2,Black,11,0,13,13,0,CONFERMATO,
+3005,300526,Brick 1 x 1,Black,11,0,8,8,0,CONFERMATO,
+3008,300826,Brick 1 x 8,Black,11,0,12,12,0,CONFERMATO,
+3008,4211099,Brick 1 x 8,Dark Bluish Gray,85,72,2,2,0,CONFERMATO,
+3009,300926,Brick 1 x 6,Black,11,0,2,2,0,PROVVISORIO (1 pz),1 di 2 pz (centro L2) sostituibile da 2x 3666 in Passaggio B
+3009,4211100,Brick 1 x 6,Dark Bluish Gray,85,72,2,0,2,CONFERMATO,
+3010,4211103,Brick 1 x 4,Dark Bluish Gray,85,72,1,1,0,PROVVISORIO (1 pz),1 pz (architrave OLED L6) rimosso con cornice 2B
+3023,302326,Plate 1 x 2,Black,11,0,4,4,0,CONFERMATO,
+3024,302426,Plate 1 x 1,Black,11,0,2,2,0,CONFERMATO,
+3031,303126,Plate 4 x 4,Black,11,0,1,0,1,CONFERMATO,
+3034,303426,Plate 2 x 8,Black,11,0,2,2,0,CONFERMATO,
+3035,303526,Plate 4 x 8,Black,11,0,1,0,1,CONFERMATO,
+3036,303626,Plate 6 x 8,Black,11,0,3,1,2,CONFERMATO,
+3069b,4211052,Tile 1 x 2 with Groove,Dark Bluish Gray,85,72,5,1,4,CONFERMATO,
+3070b,4655243,Tile 1 x 1 with Groove,Medium Azure,156,322,3,3,0,CONFERMATO,
+32054,4107742,"Technic Pin Long with Friction Ridges Lengthwise and Stop Bush [3 Lateral Holes, Big Pin Hole]",Black,11,0,4,0,4,CONFERMATO,
+32316,32316199,Technic Beam 1 x 5 Thick,Dark Bluish Gray,85,72,1,1,0,CONFERMATO,
+3460,346026,Plate 1 x 8,Black,11,0,2,2,0,CONFERMATO,
+3622,362226,Brick 1 x 3,Black,11,0,9,9,0,PROVVISORIO (8 pz),8 di 9 pz (spalle L3-L6) sostituibili da 3004 in Passaggio B
+3666,366626,Plate 1 x 6,Black,11,0,3,3,0,CONFERMATO,
+3700,370026,Technic Brick 1 x 2 [1 Pin Hole],Black,11,0,1,1,0,CONFERMATO,
+3702,370226,Technic Brick 1 x 8 [7 Pin Holes],Black,11,0,4,2,2,CONFERMATO,
+3710,4211001,Plate 1 x 4,Dark Bluish Gray,85,72,2,2,0,PROVVISORIO (2 pz),2 pz (davanzale OLED L3) rimossi con cornice 2B
+3795,379526,Plate 2 x 6,Black,11,0,2,2,0,CONFERMATO,
+4070,407026,Brick Special 1 x 1 with Headlight,Black,11,0,2,2,0,CONFERMATO,
+4162,416226,Tile 1 x 8 with Groove,Black,11,0,4,4,0,CONFERMATO,
+4162,5210651,Tile 1 x 8 with Groove,Dark Bluish Gray,85,72,2,2,0,CONFERMATO,
+4477,447726,Plate 1 x 10,Black,11,0,2,2,0,CONFERMATO,
+49307,6273589,"Brick Curved 1 x 1 x 2/3 Double Curved Top, No Studs",Black,11,0,4,4,0,CONFERMATO,
+6111,611126,Brick 1 x 10,Black,11,0,4,4,0,CONFERMATO,
+6636,4210651,Tile 1 x 6 with Groove,Dark Bluish Gray,85,72,4,0,4,CONFERMATO,
+85984,4548180,Brick Sloped 30° 1 x 2 x 2/3,Black,11,0,16,16,0,CONFERMATO,
+87087,4558954,Brick Special 1 x 1 with Stud on 1 Side,Black,11,0,5,5,0,CONFERMATO,

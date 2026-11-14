@@ -4,5 +4,27 @@ csv/inventory_parts.csv
 # Python / OS / Editor
 __pycache__/
 *.pyc
+.venv/
+05-Voice-AI/.venv/
+05-Voice-AI/tts-lab/.venv*/
+05-Voice-AI/tts-lab/bin/
+05-Voice-AI/tts-lab/models/
+05-Voice-AI/tts-lab/samples/
 .DS_Store
 Thumbs.db
+
+# Segreti e configurazioni locali Voice & AI
+.env
+.env.local
+05-Voice-AI/.env
+05-Voice-AI/config.local.json
+
+# Build PlatformIO
+.pio/
+04-Firmware/jarvis-desk-buddy/.pio/
+
+# Backup e file audio temporanei
+*BACKUP*.zip
+JARVIS_LEGO_BOT_BACKUP*.zip
+jarvis_piper_*.wav
+05-Voice-AI/tts-lab/samples/*.wav

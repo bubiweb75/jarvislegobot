@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Manuale 4 — Software e Utilizzo Windows</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-badge">Manuale 4 di 5 · Software Windows 11</span>
+      <h1>Software e Utilizzo<br/>JARVIS Windows</h1>
+      <p class="cover-sub">
+        Guida all'avvio e all'uso dell'applicazione vocale locale su Windows 11:
+        <code>Ollama (qwen2.5:3b)</code>, <code>faster-whisper</code>, voce <code>Piper Riccardo Amichetto Vivace</code>
+        e simulatore degli occhi OLED.
+      </p>
+      <div class="cover-card">
+        <h3>Funzionamento 100% locale e offline</h3>
+        <p>
+          Nella configurazione predefinita nessuna voce o conversazione esce dal PC:
+          Ollama risponde su <code>127.0.0.1:11434</code>, Whisper trascrive su CPU e Piper sintetizza la voce in locale.
+        </p>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <span>JARVIS AI Desk Buddy · FASE 6.1</span>
+      <span>Formato A4 · Italiano</span>
+    </div>
+  </section>
+
+  <div class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#sec-1">Struttura dell'Applicazione Windows (<code>05-Voice-AI/</code>)</a></li>
+      <li><a href="#sec-2">Avvio Rapido e Interfaccia Grafica</a></li>
+      <li><a href="#sec-3">Ollama Locale, faster-whisper e Provider Alternativi</a></li>
+      <li><a href="#sec-4">Voce JARVIS Amichetto (Piper Riccardo) e Fallback Elsa</a></li>
+      <li><a href="#sec-5">Simulatore OLED, 7 Espressioni e Ponte USB Futuro</a></li>
+      <li><a href="#sec-6">Risoluzione Problemi Comuni</a></li>
+    </ol>
+  </div>
+
+  <h2 id="sec-1">1. Struttura dell'Applicazione Windows (<code>05-Voice-AI/</code>)</h2>
+  <table>
+    <thead>
+      <tr><th>File / Cartella</th><th>Funzione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>run_jarvis.bat</code></td><td>Script di avvio rapido con ambiente isolato <code>.venv</code></td></tr>
+      <tr><td><code>jarvis_app.py</code></td><td>Interfaccia grafica Tkinter + simulatore occhi OLED integrato</td></tr>
+      <tr><td><code>voice_controller.py</code></td><td>Gestisce ciclo <code>IDLE → LISTENING → THINKING → SPEAKING → IDLE</code></td></tr>
+      <tr><td><code>ai_providers.py</code></td><td>Provider <code>Ollama</code> (<code>127.0.0.1:11434</code>), <code>Demo</code> e <code>OpenAI</code> (opzionale)</td></tr>
+      <tr><td><code>stt_providers.py</code></td><td>Riconoscimento vocale italiano locale con <code>faster-whisper</code></td></tr>
+      <tr><td><code>tts_providers.py</code> &amp; <code>voice_dsp.py</code></td><td>Sintesi <code>Piper Riccardo</code> + DSP <em>Amichetto Vivace</em> e fallback <code>Microsoft Elsa</code></td></tr>
+      <tr><td><code>eye_bridge.py</code></td><td>Ponte comandi verso simulatore o futura seriale USB ESP32-S3</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-2">2. Avvio Rapido e Interfaccia Grafica</h2>
+  <ol>
+    <li>Assicurati che Ollama locale sia attivo (<code>127.0.0.1:11434</code>).</li>
+    <li>Fai doppio click su <code>05-Voice-AI\run_jarvis.bat</code>.</li>
+    <li>Nella finestra principale trovi:
+      <ul>
+        <li><strong>Pannello Sinistro (Occhi OLED):</strong> mostra gli occhi animati in tempo reale e lo stato corrente.</li>
+        <li><strong>Controlli Conversazione:</strong> pulsante <strong>Premi per parlare</strong> (Push-to-Talk), campo testo per domande scritte e pulsante <strong>Stop</strong> per interrompere subito audio e AI.</li>
+        <li><strong>Scheda Configurazione:</strong> selettore <strong>Provider AI</strong> (<code>ollama</code>, <code>demo</code>, <code>openai</code>), <strong>Microfono</strong>, <strong>Voce TTS</strong> con pulsante <strong>Anteprima</strong>, slider <strong>Velocità</strong> e <strong>Volume</strong>.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2 id="sec-3">3. Ollama Locale, faster-whisper e Provider Alternativi</h2>
+  <ul>
+    <li><strong>Ollama (predefinito):</strong> usa il modello <code>qwen2.5:3b</code> su <code>http://127.0.0.1:11434</code> (non esposto su LAN).</li>
+    <li><strong>faster-whisper:</strong> modello <code>base</code> su CPU (<code>int8</code>), lingua forzata su italiano (<code>it</code>).</li>
+    <li><strong>Demo Mode:</strong> risposte simulate istantanee utili per provare occhi e audio senza modello AI.</li>
+    <li><strong>OpenAI (opzionale):</strong> utilizzabile solo inserendo chiave in <code>.env</code> locale e spuntando la conferma esplicita in GUI.</li>
+  </ul>
+
+  <h2 id="sec-4">4. Voce JARVIS Amichetto (Piper Riccardo) e Fallback Elsa</h2>
+  <p>
+    La voce predefinita è <strong><code>JARVIS Amichetto (Piper Riccardo)</code></strong>, configurata in
+    <code>config.py</code> con i parametri scelti in laboratorio (profilo <em>Amichetto Vivace</em>):
+    <code>pitch = +5.0 semitoni</code>, <code>velocità = 1.21</code>, <code>noise_scale = 1.10</code>,
+    <code>robot_mix = 0.00</code>.
+  </p>
+  <p>
+    Premendo <strong>Anteprima</strong> accanto al selettore voce puoi ascoltare subito il saluto di JARVIS.
+    Se l'eseguibile o il modello Piper non fosse disponibile, il sistema passa automaticamente a
+    <strong><code>Microsoft Elsa Desktop</code></strong> (selezionabile anche manualmente dal menu a tendina).
+  </p>
+
+  <h2 id="sec-5" class="page-break">5. Simulatore OLED, 7 Espressioni e Ponte USB Futuro</h2>
+  <div class="figure">
+    <img src="assets/jarvis_7_expressions_preview.png" alt="Anteprima autentica delle 7 espressioni OLED di JARVIS" />
+    <div class="figure-caption">Figura 4.1 — Rendering autentico dal framebuffer 128×64 di <code>eye_engine.py</code> per le 7 espressioni.</div>
+  </div>
+  <ul>
+    <li><strong>Mappatura stati → occhi:</strong> <code>IDLE → NEUTRAL</code>, <code>LISTENING → LISTENING</code>, <code>THINKING → THINKING</code>, <code>SPEAKING → SPEAKING</code>, errori → <code>CURIOUS</code>.</li>
+    <li><strong>Collegamento USB futuro:</strong> quando arriverà l'ESP32-S3, <code>eye_bridge.py</code> (<code>SerialEyeTransport</code>) e il canale binario USB-CDC (<code>06-Hardware-Integration/USB_PROTOCOL.md</code>) invieranno direttamente audio e stati al robot fisico.</li>
+  </ul>
+
+  <h2 id="sec-6">6. Risoluzione Problemi Comuni</h2>
+  <table>
+    <thead>
+      <tr><th>Sintomo</th><th>Causa probabile</th><th>Soluzione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Errore microfono Windows (322)</td><td>Un'altra app blocca il dispositivo audio o microfono errato</td><td>Chiudi altre app audio e seleziona il microfono giusto dal menu in GUI</td></tr>
+      <tr><td>Ollama non rilevato</td><td>Servizio <code>ollama serve</code> fermo</td><td>Avvia Ollama in locale su <code>127.0.0.1:11434</code> o passa temporaneamente a Demo Mode</td></tr>
+      <tr><td>Voce diversa da Piper</td><td>Selezionata <code>Microsoft Elsa</code> o modello Piper mancante</td><td>Seleziona <code>JARVIS Amichetto (Piper Riccardo)</code> e premi <strong>Anteprima</strong></td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

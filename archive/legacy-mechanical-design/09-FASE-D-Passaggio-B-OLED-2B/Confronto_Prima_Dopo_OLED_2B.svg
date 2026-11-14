@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="520" viewBox="0 0 840 520" style="background:#f8f9fa">
+<text x="420" y="28" font-family="Segoe UI,Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#111">Confronto Prima / Dopo — FASE D Passaggio B (Integrazione Cornice OLED 2B)</text>
+<text x="223.0" y="55" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">PRIMA: Modello FASE C (137 pz)</text>
+<rect x="55.0" y="65.0" width="336.0" height="403.20000000000005" fill="#20242b" stroke="#0b0d10" stroke-width="1.2"/>
+<rect x="55.0" y="65.0" width="336.0" height="26.880000000000003" fill="#2b303a" stroke="#0b0d10"/>
+<rect x="90.7" y="350.6" width="29.400000000000002" height="30.240000000000002" fill="#36aebf"/>
+<rect x="325.90000000000003" y="350.6" width="29.400000000000002" height="30.240000000000002" fill="#36aebf"/>
+<rect x="155.8" y="306.92" width="134.4" height="40.32" fill="#6b727d" stroke="#111"/>
+<rect x="155.8" y="185.95999999999998" width="134.4" height="40.32" fill="#6b727d" stroke="#111"/>
+<rect x="155.8" y="226.28" width="134.4" height="80.64" fill="#050608"/>
+<text x="223.0" y="486.20000000000005" font-family="Segoe UI,Arial" font-size="11" text-anchor="middle" fill="#b71c1c">137 pezzi | Incasso 8,0 mm (±9,2° O)</text>
+<text x="618.0" y="55" font-family="Segoe UI,Arial" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">DOPO: Modello OLED 2B (134 pz)</text>
+<rect x="450.0" y="65.0" width="336.0" height="403.20000000000005" fill="#20242b" stroke="#0b0d10" stroke-width="1.2"/>
+<rect x="450.0" y="65.0" width="336.0" height="26.880000000000003" fill="#2b303a" stroke="#0b0d10"/>
+<rect x="485.7" y="350.6" width="29.400000000000002" height="30.240000000000002" fill="#36aebf"/>
+<rect x="720.9000000000001" y="350.6" width="29.400000000000002" height="30.240000000000002" fill="#36aebf"/>
+<rect x="517.2" y="185.95999999999998" width="201.60000000000002" height="174.72000000000003" fill="#1a1d24" stroke="#455a64" stroke-dasharray="4,2"/>
+<rect x="550.8" y="226.28" width="134.4" height="80.64" fill="#050608" stroke="#607d8b"/>
+<rect x="576.0" y="247.28" width="30.240000000000002" height="38.64" rx="9.240000000000002" fill="#ffffff"/>
+<rect x="629.76" y="247.28" width="30.240000000000002" height="38.64" rx="9.240000000000002" fill="#ffffff"/>
+<text x="618.0" y="486.20000000000005" font-family="Segoe UI,Arial" font-size="11" font-weight="bold" text-anchor="middle" fill="#1b5e20">134 pezzi | Tasca 2B 48×41,6 mm | Incasso 1,8 mm (±35,6° O)</text>
+<text x="420" y="502" font-family="Segoe UI,Arial" font-size="11" text-anchor="middle" fill="#333">Differenza: -8× 3622 + 8× 3004 | -2× 3710 | -1× 2431 | -1× 3010 | -1× 3009 + 2× 3666 (saldo -3 pezzi)</text>
+</svg>

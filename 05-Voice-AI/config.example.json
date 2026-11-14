@@ -1,0 +1,21 @@
+{
+  "ai_provider": "ollama",
+  "ollama_url": "http://localhost:11434",
+  "ollama_model": "qwen2.5:3b",
+  "ollama_timeout_s": 45.0,
+  "openai_model": "gpt-4o-mini",
+  "openai_base_url": "https://api.openai.com/v1",
+  "openai_timeout_s": 25.0,
+  "max_history_turns": 6,
+  "tts_voice": "JARVIS Amichetto (Piper Riccardo)",
+  "tts_rate": 1,
+  "tts_volume": 90,
+  "piper_pitch_semitones": 5.0,
+  "piper_speed": 1.21,
+  "piper_noise_scale": 1.10,
+  "piper_robot_mix": 0.0,
+  "stt_language": "it-IT",
+  "stt_timeout_s": 10.0,
+  "whisper_model_size": "base",
+  "system_prompt_file": "prompts/jarvis_system_it.txt"
+}
