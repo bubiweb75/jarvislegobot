@@ -6,6 +6,7 @@ import queue
 import sys
 import tkinter as tk
 from tkinter import ttk
+from typing import Callable, Dict, Optional
 
 SIM_DIR = Path(__file__).resolve().parent.parent / "04-Firmware" / "jarvis-desk-buddy-sim"
 if str(SIM_DIR) not in sys.path:
@@ -15,37 +16,76 @@ from simulator_gui import JarvisSimulatorApp  # noqa: E402
 
 from audio_input import list_microphones  # noqa: E402
 from config import load_config  # noqa: E402
+from control_center_panels import (  # noqa: E402
+    ACCENT_CYAN,
+    BG_CARD,
+    BG_DARK,
+    BG_PANEL,
+    TEXT_PRIMARY,
+    DashboardPanel,
+    DiagnosticsPanel,
+    MemoryPanel,
+    PersonalityPanel,
+    SensorStatusPanel,
+    SimulatorControlPanel,
+    load_personality_config_json,
+)
 from conversation_engine import ConversationEngine2  # noqa: E402
 from eye_bridge import EyeBridge, SimulatorQueueTransport  # noqa: E402
-from memory_engine import MemoryEngine  # noqa: E402
+from memory_engine import MemoryConfig, MemoryEngine  # noqa: E402
 from voice_controller import VoiceController, VoiceEvent, VoicePhase  # noqa: E402
 
 
 class JarvisUnifiedApp:
-    def __init__(self, root: tk.Tk) -> None:
+    SPONTANEOUS_CHECK_INTERVAL_MS = 60_000
+    STARTUP_GRACE_MS = 60_000
+
+    def __init__(
+        self,
+        root: tk.Tk,
+        data_dir: Optional[Path] = None,
+        confirm_wipe_fn: Optional[Callable[[], bool]] = None,
+    ) -> None:
         self.root = root
-        self.root.title("JARVIS AI Desk Buddy — OLED Simulator + Voice & AI Hybrid")
-        self.root.configure(bg="#0B101B")
-        self.root.resizable(False, False)
+        self.root.title("JARVIS Control Center — BRAIN 2.0")
+        self.root.configure(bg=BG_DARK)
+        self.root.resizable(True, True)
+        self.root.minsize(980, 620)
+        self._apply_dark_theme()
+
+        self._data_dir = data_dir or (Path(__file__).resolve().parent / "data")
+        self._memory_cfg_path = self._data_dir / "memory_config.json"
+        self._personality_cfg_path = self._data_dir / "personality_config.json"
+        self._confirm_wipe_fn = confirm_wipe_fn
+
+        self._closed = False
+        self._last_error_text = ""
+        self._poll_timer_id: Optional[str] = None
+        self._spontaneous_timer_id: Optional[str] = None
+        self._ui_tick_counter = 0
 
         self.config = load_config()
         self._event_queue: "queue.Queue[VoiceEvent]" = queue.Queue()
         self.eye_transport = SimulatorQueueTransport()
         self.eye_bridge = EyeBridge(transport=self.eye_transport)
 
-        main_row = tk.Frame(self.root, bg="#0B101B")
+        main_row = tk.Frame(self.root, bg=BG_DARK)
         main_row.pack(fill="both", expand=True)
 
         # Left column: Existing OLED Simulator (no duplicate engine!)
-        self.sim_container = tk.Frame(main_row, bg="#0B101B")
+        self.sim_container = tk.Frame(main_row, bg=BG_DARK)
         self.sim_container.pack(side="left", fill="both")
         self.sim = JarvisSimulatorApp(self.root, container=self.sim_container, scale=5)
         self.sim.sm.handle_command("AUTO:OFF", self.sim._now_ms())
         self.sim.sm.handle_command("STATE:IDLE", self.sim._now_ms())
         self.sim._highlight_active_button()
 
-        # Right column: JARVIS Voice & AI panel
-        self.voice_panel = tk.Frame(main_row, bg="#0F172A", width=440, padx=12, pady=12)
+        # Load persisted PersonalityConfig onto shared PersonalityProfile
+        loaded_pers = load_personality_config_json(self._personality_cfg_path)
+        self.sim.personality.update_config(loaded_pers)
+
+        # Right column: JARVIS Control Center
+        self.voice_panel = tk.Frame(main_row, bg=BG_PANEL, width=470, padx=12, pady=12)
         self.voice_panel.pack(side="right", fill="both", expand=True)
 
         self.controller = VoiceController(
@@ -54,7 +94,11 @@ class JarvisUnifiedApp:
             on_event=self._on_voice_event_bg,
             emotion_engine=self.sim.emotion_engine,
         )
-        self.memory_engine = MemoryEngine()
+        mem_cfg = MemoryConfig.load_json(self._memory_cfg_path)
+        self.memory_engine = MemoryEngine(
+            db_path=self._data_dir / "jarvis_memory.sqlite3",
+            config=mem_cfg,
+        )
         self.conv_engine = ConversationEngine2(
             voice_controller=self.controller,
             memory_engine=self.memory_engine,
@@ -63,9 +107,22 @@ class JarvisUnifiedApp:
         self.conv_engine.start_session()
         self.root.protocol("WM_DELETE_WINDOW", self.close)
 
+        self._tabs: Dict[str, tk.Frame] = {}
         self._build_voice_ui()
         self._refresh_hardware_status()
+        self._refresh_control_center()
         self._poll_queues()
+        self._schedule_spontaneous_check()
+
+    def _apply_dark_theme(self) -> None:
+        style = ttk.Style(self.root)
+        try:
+            style.theme_use("clam")
+        except Exception:
+            pass
+        style.configure("TNotebook", background=BG_PANEL, borderwidth=0)
+        style.configure("TNotebook.Tab", background=BG_CARD, foreground=TEXT_PRIMARY, padding=[8, 4], font=("Segoe UI", 8, "bold"))
+        style.map("TNotebook.Tab", background=[("selected", "#0284C7")], foreground=[("selected", "#FFFFFF")])
 
     def _on_voice_event_bg(self, event: VoiceEvent) -> None:
         self._event_queue.put(event)
@@ -73,21 +130,21 @@ class JarvisUnifiedApp:
     def _build_voice_ui(self) -> None:
         title = tk.Label(
             self.voice_panel,
-            text="JARVIS Voice & AI",
-            fg="#F8FAFC",
-            bg="#0F172A",
+            text="JARVIS Control Center",
+            fg=TEXT_PRIMARY,
+            bg=BG_PANEL,
             font=("Segoe UI", 13, "bold"),
         )
-        title.pack(anchor="w", pady=(0, 6))
+        title.pack(anchor="w", pady=(0, 4))
 
         self.phase_var = tk.StringVar(value="Stato: IDLE | Pronto")
         tk.Label(
             self.voice_panel,
             textvariable=self.phase_var,
-            fg="#38BDF8",
-            bg="#0F172A",
+            fg=ACCENT_CYAN,
+            bg=BG_PANEL,
             font=("Consolas", 9, "bold"),
-            wraplength=415,
+            wraplength=435,
             justify="left",
         ).pack(anchor="w", pady=(0, 2))
 
@@ -98,17 +155,60 @@ class JarvisUnifiedApp:
             self.voice_panel,
             textvariable=self.provider_badge_var,
             fg="#A7F3D0",
-            bg="#0F172A",
+            bg=BG_PANEL,
             font=("Segoe UI", 9, "bold"),
         ).pack(anchor="w", pady=(0, 8))
 
         notebook = ttk.Notebook(self.voice_panel)
         notebook.pack(fill="both", expand=True)
+        self.control_notebook = notebook
 
-        tab_chat = tk.Frame(notebook, bg="#0F172A", padx=8, pady=8)
-        tab_cfg = tk.Frame(notebook, bg="#0F172A", padx=8, pady=8)
-        notebook.add(tab_chat, text=" Conversazione ")
-        notebook.add(tab_cfg, text=" Impostazioni & Audio ")
+        self.dashboard_panel = DashboardPanel(
+            notebook,
+            on_toggle_quiet=lambda val: self._on_toggle_quiet_mode(val),
+            on_toggle_persistent_mem=lambda val: self._on_toggle_persistent_memory(val),
+        )
+        tab_chat = tk.Frame(notebook, bg=BG_PANEL, padx=8, pady=8)
+        self.memory_panel = MemoryPanel(
+            notebook,
+            memory_engine=self.memory_engine,
+            on_toggle_persistent=lambda val: self._on_toggle_persistent_memory(val),
+            confirm_wipe_fn=self._confirm_wipe_fn,
+        )
+        self.personality_panel = PersonalityPanel(
+            notebook,
+            profile=self.sim.personality,
+            config_path=self._personality_cfg_path,
+            on_toggle_quiet=lambda val: self._on_toggle_quiet_mode(val),
+        )
+        self.simulator_panel = SimulatorControlPanel(notebook, sim_app=self.sim)
+        self.sensor_panel = SensorStatusPanel(
+            notebook,
+            sim_app=self.sim,
+            on_open_sensor_lab=lambda: self.sim.sim_notebook.select(1),
+        )
+        self.diagnostics_panel = DiagnosticsPanel(notebook)
+        tab_cfg = tk.Frame(notebook, bg=BG_PANEL, padx=8, pady=8)
+
+        notebook.add(self.dashboard_panel, text=" Dashboard ")
+        notebook.add(tab_chat, text=" Chat ")
+        notebook.add(self.memory_panel, text=" Memoria ")
+        notebook.add(self.personality_panel, text=" Personalità ")
+        notebook.add(self.simulator_panel, text=" Simulatore ")
+        notebook.add(self.sensor_panel, text=" Sensori ")
+        notebook.add(self.diagnostics_panel, text=" Diagnostica ")
+        notebook.add(tab_cfg, text=" Audio & AI ")
+
+        self._tabs = {
+            "dashboard": self.dashboard_panel,
+            "chat": tab_chat,
+            "memoria": self.memory_panel,
+            "personalita": self.personality_panel,
+            "simulatore": self.simulator_panel,
+            "sensori": self.sensor_panel,
+            "diagnostica": self.diagnostics_panel,
+            "audio": tab_cfg,
+        }
 
         # --- TAB 1: CONVERSAZIONE ---
         btn_row = tk.Frame(tab_chat, bg="#0F172A")
@@ -463,13 +563,25 @@ class JarvisUnifiedApp:
         self.transcript_var.set("-")
         self._set_reply_text("Nuova conversazione avviata.")
 
-    def _on_toggle_persistent_memory(self) -> None:
-        enabled = bool(self.persistent_mem_var.get())
-        self.conv_engine.set_persistent_memory_enabled(enabled)
+    def select_tab(self, tab_key: str) -> None:
+        tab = self._tabs.get(tab_key.lower())
+        if tab is not None:
+            self.control_notebook.select(tab)
 
-    def _on_toggle_quiet_mode(self) -> None:
-        enabled = bool(self.quiet_mode_var.get())
-        self.conv_engine.set_quiet_mode(enabled)
+    def _on_toggle_persistent_memory(self, enabled: Optional[bool] = None) -> None:
+        val = bool(self.persistent_mem_var.get()) if enabled is None else bool(enabled)
+        self.persistent_mem_var.set(val)
+        self.conv_engine.set_persistent_memory_enabled(val)
+        self.memory_engine.config.save_json(self._memory_cfg_path)
+        self.memory_panel.refresh_lists()
+        self._refresh_control_center()
+
+    def _on_toggle_quiet_mode(self, enabled: Optional[bool] = None) -> None:
+        val = bool(self.quiet_mode_var.get()) if enabled is None else bool(enabled)
+        self.quiet_mode_var.set(val)
+        self.conv_engine.set_quiet_mode(val)
+        self.personality_panel.sync_quiet(val)
+        self._refresh_control_center()
 
     def _on_propose_memory(self) -> None:
         text = self.memory_entry.get().strip()
@@ -485,6 +597,7 @@ class JarvisUnifiedApp:
         if pending:
             self.conv_engine.confirm_memory(pending[-1].proposal_id)
         self._refresh_proposal_label()
+        self.memory_panel.refresh_lists()
 
     def _on_reject_memory(self) -> None:
         pending = self.conv_engine.list_pending_proposals()
@@ -500,7 +613,75 @@ class JarvisUnifiedApp:
             last = pending[-1]
             self.proposal_status_var.set(f"In attesa ({len(pending)}): {last.content[:60]}")
 
+    def _schedule_spontaneous_check(self) -> None:
+        if self._closed or self._spontaneous_timer_id is not None:
+            return
+        self._spontaneous_timer_id = self.root.after(
+            self.SPONTANEOUS_CHECK_INTERVAL_MS,
+            self._on_spontaneous_timer,
+        )
+
+    def _on_spontaneous_timer(self) -> None:
+        self._spontaneous_timer_id = None
+        if self._closed:
+            return
+        try:
+            self.tick_spontaneous_initiatives()
+        except Exception:
+            pass
+        self._schedule_spontaneous_check()
+
+    def tick_spontaneous_initiatives(self, now_ms: Optional[int] = None) -> Optional[str]:
+        ts = self.sim._now_ms() if now_ms is None else now_ms
+        if ts < self.STARTUP_GRACE_MS:
+            return None
+        return self.conv_engine.try_spontaneous_voice(category="IDLE_CHECKIN", now_ms=ts)
+
+    def _refresh_control_center(self) -> None:
+        if self._closed:
+            return
+        now_ms = self.sim._now_ms()
+        stt_ok, _ = self.controller.stt.is_available()
+        tts_ok = bool(self.controller.tts.list_voices())
+        prov = self.controller.providers[self.controller.active_provider_id]
+        ai_ok, _ = prov.is_available()
+        svc_summary = f"STT={'OK' if stt_ok else 'NO'} | AI({prov.provider_id})={'OK' if ai_ok else 'OFFLINE'} | TTS={'OK' if tts_ok else 'NO'}"
+        can_spont, spont_reason = self.sim.behavior_engine.can_trigger_spontaneous_voice(now_ms)
+        spont_summary = "pronta" if can_spont else spont_reason
+
+        self.dashboard_panel.refresh(
+            mode=self.sim.behavior_engine.mode,
+            expression=self.sim.eyes.expr.value,
+            quiet_mode=self.sim.behavior_engine.quiet_mode,
+            persistent_enabled=self.memory_engine.config.persistent_enabled,
+            services_summary=svc_summary,
+            spontaneous_summary=spont_summary,
+            last_error=self._last_error_text,
+            esp32_connected=False,
+        )
+        self.simulator_panel.refresh()
+        self.sensor_panel.refresh()
+        self.diagnostics_panel.refresh(
+            behavior_engine=self.sim.behavior_engine,
+            voice_phase=self.controller.phase.value,
+            provider_id=self.controller.active_provider_id,
+            memory_health=self.memory_engine.health_status(),
+            last_error=self._last_error_text,
+            esp32_connected=False,
+        )
+
     def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        for attr in ("_poll_timer_id", "_spontaneous_timer_id"):
+            tid = getattr(self, attr, None)
+            if tid is not None:
+                try:
+                    self.root.after_cancel(tid)
+                except Exception:
+                    pass
+                setattr(self, attr, None)
         try:
             self.conv_engine.end_session()
         except Exception:
@@ -521,6 +702,8 @@ class JarvisUnifiedApp:
         self.reply_box.configure(state="disabled")
 
     def _poll_queues(self) -> None:
+        if self._closed:
+            return
         now_ms = self.sim._now_ms()
         self.eye_transport.drain(lambda cmd: self._handle_eye_cmd(cmd, now_ms))
 
@@ -537,6 +720,7 @@ class JarvisUnifiedApp:
             if ev.reply:
                 self._set_reply_text(ev.reply)
             if ev.error_text:
+                self._last_error_text = ev.error_text
                 self._set_reply_text(f"[Avviso] {ev.error_text}")
 
             if ev.phase == VoicePhase.LISTENING:
@@ -544,7 +728,11 @@ class JarvisUnifiedApp:
             else:
                 self.talk_btn.configure(text="Parla (Avvia Ascolto)", bg="#0284C7")
 
-        self.root.after(25, self._poll_queues)
+        self._ui_tick_counter += 1
+        if self._ui_tick_counter % 10 == 0:
+            self._refresh_control_center()
+
+        self._poll_timer_id = self.root.after(25, self._poll_queues)
 
     def _handle_eye_cmd(self, cmd: str, now_ms: int) -> None:
         self.sim.sm.handle_command(cmd, now_ms)

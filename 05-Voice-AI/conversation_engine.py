@@ -243,8 +243,8 @@ class ConversationEngine2:
         self.behavior.set_quiet_mode(enabled, self._now_ms())
 
     def try_spontaneous_voice(self, category: str = "IDLE_CHECKIN", now_ms: Optional[int] = None) -> Optional[str]:
-        """Request and speak a spontaneous cue only if IDLE, not Quiet Mode, and within 2/h & 20m limits."""
-        if self.voice.phase != VoicePhase.IDLE:
+        """Request and speak a spontaneous cue only if IDLE, not speaking, not Quiet Mode, and within 2/h & 20m limits."""
+        if self.voice.phase != VoicePhase.IDLE or self.voice.tts.is_speaking():
             return None
         ts = self._now_ms() if now_ms is None else now_ms
         dec = self.behavior.request_spontaneous_voice(category, now_ms=ts, source="conversation2")

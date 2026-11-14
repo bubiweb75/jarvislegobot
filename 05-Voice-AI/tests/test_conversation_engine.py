@@ -306,11 +306,13 @@ class TestConversationEngine2(unittest.TestCase):
         t0 = 10_000
         cue1 = eng.try_spontaneous_voice(now_ms=t0)
         self.assertIsNotNone(cue1)
+        time.sleep(0.04)  # allow MockTTSProvider thread to finish before next simulated slot
         # Too soon (5 min later)
         self.assertIsNone(eng.try_spontaneous_voice(now_ms=t0 + 5 * 60 * 1000))
         # 21 min later -> allowed (2nd in hour)
         cue2 = eng.try_spontaneous_voice(now_ms=t0 + 21 * 60 * 1000)
         self.assertIsNotNone(cue2)
+        time.sleep(0.04)
         # 42 min later -> 3rd in same hour -> blocked by 2/hour limit
         self.assertIsNone(eng.try_spontaneous_voice(now_ms=t0 + 42 * 60 * 1000))
 

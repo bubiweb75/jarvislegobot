@@ -217,3 +217,29 @@ Invece di creare una seconda applicazione, si evolve `05-Voice-AI/jarvis_app.py`
   - **Limitazione dichiarata:** il modello LLM potrebbe comunque interpretare impropriamente contenuti ostili o istruzioni camuffate nei ricordi; la sola delimitazione testuale riduce il rischio ma **non garantisce un isolamento assoluto**.
 - **Cosa resta per la FASE 9.4 (Control Center):**
   - Interfaccia completa a schede (`Conversazione`, `Personalità e Comportamento`, `Memoria`, `Sensori e Stato`, `Diagnostica`), gestione avanzata/modifica/cancellazione selettiva dei ricordi da UI, trigger periodico controllato per `try_spontaneous_voice()`, selettore microfono/dispositivi e pannello unificato di controllo.
+
+---
+
+## 14. Stato Implementazione FASE 9.4 — JARVIS Control Center
+
+- **Architettura e moduli:**
+  - `05-Voice-AI/control_center_panels.py` *(nuovo)*: pannelli Tkinter modulari a tema scuro (`#0B101B`/`#0F172A`/`#1E293B` + accenti ciano `#38BDF8`) senza dipendenze grafiche aggiuntive: `DashboardPanel`, `MemoryPanel`, `PersonalityPanel`, `SimulatorControlPanel`, `SensorStatusPanel`, `DiagnosticsPanel`, più helper JSON per `PersonalityConfig`.
+  - `05-Voice-AI/jarvis_app.py`: evoluto in `JARVIS Control Center — BRAIN 2.0` ridimensionabile (`minsize(980, 620)`), mantenendo il simulatore OLED a sinistra e una singola istanza condivisa di `BehaviorEngine`, `MemoryEngine`, `VoiceController` e `ConversationEngine2`.
+  - `05-Voice-AI/tests/test_control_center.py` *(nuovo)*: 5 test dedicati su navigazione schede, CRUD memoria e conferma cancellazione totale, persistenza impostazioni JSON, `Quiet Mode` e iniziative spontanee, assenza di timer duplicati, servizi non disponibili e chiusura pulita.
+- **Schede del Control Center:**
+  1. **Dashboard:** modalità corrente (`RobotMode`), ultima espressione OLED, stato hardware ESP32 (simulatore locale vs connesso), disponibilità servizi vocali (STT/AI/TTS), stato iniziative spontanee, ultimo avviso/errore non sensibile, toggle rapidi `Quiet Mode` e `Memoria Persistente`.
+  2. **Chat:** conversazione testuale/vocale, interruzione risposta, nuova sessione, proposta e conferma/rifiuto esplicito dei ricordi.
+  3. **Memoria:** preferenze L2 (salva/elimina), ricordi confermati L3/L4 (ricerca, modifica, elimina, visualizzazione scadenze L4), toggle persistenza e cancellazione completa con **conferma esplicita**. Le proposte non confermate non compaiono mai come ricordi salvati.
+  4. **Personalità:** slider per i parametri effettivamente supportati da `PersonalityConfig` (`expressive_intensity`, `curiosity_bias`, `playfulness_bias`, `affection_bias`, `mischief_bias`, `initiative_frequency`), abilitazione iniziative spontanee e `Quiet Mode`, con salvataggio JSON locale in `05-Voice-AI/data/personality_config.json`.
+  5. **Simulatore:** stato espressione corrente, griglia delle 14 espressioni OLED, controlli sguardo (`LOOK:dx,dy`), `BLINK` e sequenze `EyeEngine2`, compatibili con il firmware FASE 8.2A.
+  6. **Sensori:** distinzione esplicita tra hardware fisico non collegato e `SimulatedSensorProvider` per `VL53L0X`, `TTP223`, `MPU6050`, `BH1750`, con accesso al `Sensor Lab` completo.
+  7. **Diagnostica:** stato `BehaviorEngine`, `VoiceController`, `MemoryEngine` (`health_status`), ultimi eventi diagnostici non sensibili, ultimo errore, versione e stato connessione ESP32.
+  8. **Audio & AI:** selezione provider/modello AI, conferma esplicita chiamate cloud, microfono, voce locale Piper/Windows, velocità e volume.
+- **Trigger periodico delle iniziative spontanee e API pubbliche:**
+  - Un singolo timer Tkinter (`SPONTANEOUS_CHECK_INTERVAL_MS = 60_000`) con periodo di grazia iniziale (`STARTUP_GRACE_MS = 60_000`, nessuna iniziativa all'avvio immediato), guardia contro timer duplicati e cancellazione pulita in `close()`.
+  - `try_spontaneous_voice()` verifica anche `tts.is_speaking()` per evitare sovrapposizioni con audio già in riproduzione, oltre a `Quiet Mode`, conversazione attiva, `RobotMode.SLEEPING`, disattivazione completa e limiti `2/ora` e `20 minuti`.
+  - Aggiunta la proprietà pubblica `BehaviorEngine.spontaneous_voice_count` per leggere il contatore dalla diagnostica senza accedere ad attributi privati.
+- **Funzionalità dipendenti dall'hardware fisico e limitazioni residue:**
+  - Hardware ESP32-S3, display OLED fisico (`SH1106`/`SSD1306`), sensori reali (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`) e audio I²S restano non collegati e non collaudati fisicamente.
+  - La riproduzione audio delle iniziative spontanee e della voce è stata testata con `MockTTSProvider` nei test automatici; l'uso reale con microfono, `Ollama` e `Piper` dipende dai servizi locali disponibili.
+- **Test eseguiti (FASE 9.4 definitiva):** `py_compile` OK, **28/28** test simulatore + **39/39** test Voice AI (**67/67** totali, inclusi 8 test dedicati in `test_control_center.py`) e smoke test `jarvis_app.py --smoke-ms 300` superati.

@@ -108,6 +108,11 @@ class BehaviorEngine:
         self._active_sequence_priority: int = 0
         self.diagnostics: Deque[BehaviorDiagnostic] = deque(maxlen=30)
 
+    @property
+    def spontaneous_voice_count(self) -> int:
+        """Number of spontaneous voice cues recorded in the rolling 1-hour window."""
+        return len(self._voice_initiative_timestamps_ms)
+
     def set_quiet_mode(self, enabled: bool, now_ms: int = 0) -> None:
         self.quiet_mode = bool(enabled)
         self.emotion_engine.config.silent_mode = self.quiet_mode
