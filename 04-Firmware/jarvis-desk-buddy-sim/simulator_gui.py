@@ -592,6 +592,11 @@ class JarvisSimulatorApp:
         self.zoom_img.tk.call(self.zoom_img, "copy", self.base_img, "-zoom", self.SCALE, self.SCALE)
 
     def _tick(self) -> None:
+        try:
+            if not self.root.winfo_exists():
+                return
+        except tk.TclError:
+            return
         now_ms = self._now_ms()
         changed = self.sm.update(now_ms)
         if changed is not None:

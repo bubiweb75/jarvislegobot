@@ -196,7 +196,7 @@ class DashboardPanel(tk.Frame):
 
 
 class MemoryPanel(tk.Frame):
-    """Manage L2 preferences and confirmed L3/L4 memories with explicit wipe confirmation."""
+    """Manage L2 preferences and confirmed L3/L4 memories with explicit consent & confirmations."""
 
     def __init__(
         self,
@@ -204,11 +204,17 @@ class MemoryPanel(tk.Frame):
         memory_engine: Any,
         on_toggle_persistent: Callable[[bool], None],
         confirm_wipe_fn: Optional[Callable[[], bool]] = None,
+        confirm_add_fn: Optional[Callable[[str, str], bool]] = None,
+        confirm_delete_fn: Optional[Callable[[str], bool]] = None,
+        demo_mode: bool = False,
     ) -> None:
         super().__init__(parent, bg=BG_PANEL, padx=8, pady=8)
         self.memory = memory_engine
         self._on_toggle_persistent = on_toggle_persistent
         self._confirm_wipe_fn = confirm_wipe_fn
+        self._confirm_add_fn = confirm_add_fn
+        self._confirm_delete_fn = confirm_delete_fn
+        self._demo_mode = bool(demo_mode)
         self._record_map: Dict[str, tuple[str, int, str]] = {}
 
         top = tk.Frame(self, bg=BG_PANEL)
@@ -229,13 +235,52 @@ class MemoryPanel(tk.Frame):
         self.status_var = tk.StringVar(value="")
         tk.Label(top, textvariable=self.status_var, bg=BG_PANEL, fg=ACCENT_CYAN, font=("Segoe UI", 8)).pack(side="right")
 
-        # Search + Refresh
+        # Action bar: Add memory always visible + Search + Level filter
+        action_row = tk.Frame(self, bg=BG_PANEL)
+        action_row.pack(fill="x", pady=(0, 6))
+        self.add_btn = tk.Button(
+            action_row,
+            text="+ Aggiungi ricordo",
+            command=self.open_add_memory_dialog,
+            bg=ACCENT_GREEN,
+            fg="#FFFFFF",
+            relief="flat",
+            padx=8,
+            pady=3,
+            font=("Segoe UI", 8, "bold"),
+        )
+        self.add_btn.pack(side="left")
+
+        self.level_filter_var = tk.StringVar(value="Tutti")
+        self.filter_combo = ttk.Combobox(
+            action_row,
+            textvariable=self.level_filter_var,
+            values=["Tutti", "L2", "L3", "L4"],
+            state="readonly",
+            width=7,
+        )
+        self.filter_combo.pack(side="right", padx=(4, 0))
+        self.filter_combo.bind("<<ComboboxSelected>>", lambda _e: self.refresh_lists())
+        tk.Label(action_row, text="Filtro:", bg=BG_PANEL, fg=TEXT_MUTED, font=("Segoe UI", 8)).pack(side="right", padx=(6, 0))
+
         search_row = tk.Frame(self, bg=BG_PANEL)
         search_row.pack(fill="x", pady=(0, 6))
         self.search_entry = tk.Entry(search_row, bg=BG_CARD, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY, relief="flat")
         self.search_entry.pack(side="left", fill="x", expand=True, ipady=3)
         tk.Button(search_row, text="Cerca", command=self.refresh_lists, bg="#0284C7", fg="#FFFFFF", relief="flat", padx=8).pack(side="left", padx=(4, 0))
         tk.Button(search_row, text="Aggiorna", command=self.refresh_lists, bg="#334155", fg=TEXT_PRIMARY, relief="flat", padx=8).pack(side="left", padx=(4, 0))
+
+        self.empty_info_var = tk.StringVar(value="")
+        tk.Label(
+            self,
+            textvariable=self.empty_info_var,
+            bg=BG_PANEL,
+            fg=ACCENT_AMBER,
+            anchor="w",
+            justify="left",
+            wraplength=420,
+            font=("Segoe UI", 8),
+        ).pack(fill="x", pady=(0, 4))
 
         # L2 Preferences
         pref_card = _card(self, "Preferenze L2")
@@ -253,7 +298,7 @@ class MemoryPanel(tk.Frame):
         tk.Button(pref_add, text="Elimina L2", command=self.delete_selected_preference, bg=ACCENT_RED, fg="#FFFFFF", relief="flat", padx=6, font=("Segoe UI", 8)).pack(side="left", padx=(4, 0))
 
         # L3/L4 Confirmed Memories
-        mem_card = _card(self, "Ricordi Confermati L3 / L4 (con scadenze L4)")
+        mem_card = _card(self, "Ricordi Confermati L3 / L4 (creazione e scadenze L4)")
         mem_card.pack(fill="both", expand=True, pady=(0, 6))
         self.mem_list = tk.Listbox(mem_card, height=6, bg=BG_CARD, fg=TEXT_PRIMARY, selectbackground="#0284C7", relief="flat", font=("Consolas", 8))
         self.mem_list.pack(fill="both", expand=True)
@@ -283,25 +328,151 @@ class MemoryPanel(tk.Frame):
 
     def refresh_lists(self) -> None:
         self.persistent_var.set(bool(self.memory.config.persistent_enabled))
+        query = self.search_entry.get().strip().lower()
+        filt = self.level_filter_var.get()
+
         self.pref_list.delete(0, "end")
-        for k, v in self.memory.list_preferences().items():
-            self.pref_list.insert("end", f"{k} = {v}")
+        if filt in ("Tutti", "L2"):
+            for k, v in self.memory.list_preferences().items():
+                if not query or query in k.lower() or query in v.lower():
+                    self.pref_list.insert("end", f"{k} = {v}")
 
         self.mem_list.delete(0, "end")
         self._record_map.clear()
-        query = self.search_entry.get().strip()
-        records = self.memory.search_memories(query=query, limit=50)
-        for idx, rec in enumerate(records):
-            exp = ""
-            if rec.level == "L4" and rec.expires_at:
-                dt = datetime.fromtimestamp(rec.expires_at).strftime("%Y-%m-%d")
-                exp = f" | scade {dt}"
-            label = f"[{rec.level}#{rec.record_id}:{rec.category}{exp}] {rec.content}"
-            self.mem_list.insert("end", label)
-            self._record_map[str(idx)] = (rec.level, rec.record_id, rec.content)
+        records = []
+        if filt in ("Tutti", "L3", "L4"):
+            lvl_arg = None if filt == "Tutti" else filt
+            records = self.memory.search_memories(query=self.search_entry.get().strip(), level=lvl_arg, limit=50)
+            for idx, rec in enumerate(records):
+                created = datetime.fromtimestamp(rec.created_at).strftime("%Y-%m-%d")
+                exp = ""
+                if rec.level == "L4" and rec.expires_at:
+                    dt = datetime.fromtimestamp(rec.expires_at).strftime("%Y-%m-%d")
+                    exp = f" | scade {dt}"
+                label = f"[{rec.level}#{rec.record_id}:{rec.category} | {created}{exp}] {rec.content}"
+                self.mem_list.insert("end", label)
+                self._record_map[str(idx)] = (rec.level, rec.record_id, rec.content)
+
+        if not self.memory.config.persistent_enabled:
+            self.empty_info_var.set(
+                "Memoria persistente disabilitata: nessuna lettura o scrittura su SQLite. "
+                "Puoi riattivarla con la spunta sopra."
+            )
+        elif self.pref_list.size() == 0 and len(records) == 0:
+            self.empty_info_var.set(
+                "Nessun ricordo salvato trovato. Usa '+ Aggiungi ricordo' per inserire una preferenza o un ricordo."
+            )
+        elif self._demo_mode:
+            self.empty_info_var.set(
+                "Modalità --demo attiva: le modifiche confermate usano comunque il database locale esistente."
+            )
+        else:
+            self.empty_info_var.set("")
 
         health = self.memory.health_status()
         self.status_var.set(f"L2: {self.pref_list.size()} | L3/L4: {len(records)} | DB: {health.get('status')}")
+
+    def add_memory_with_consent(self, level: str, text: str, key: str = "", category: str = "generale") -> bool:
+        """Add L2 preference or L3/L4 memory through explicit consent and persistence checks."""
+        if not self.memory.config.persistent_enabled:
+            if self._confirm_add_fn is None:
+                messagebox.showwarning(
+                    "Memoria persistente disabilitata",
+                    "La memoria persistente è disabilitata. Attivala prima di salvare nuovi ricordi.",
+                )
+            return False
+
+        lvl = level.upper().strip()
+        cleaned = text.strip()
+        if not cleaned:
+            return False
+
+        if lvl == "L2":
+            pref_key = key.strip() or "nota_utente"
+            summary = f"Preferenza L2: {pref_key} = {cleaned}"
+            if self._confirm_add_fn is not None:
+                confirmed = bool(self._confirm_add_fn("L2", summary))
+            else:
+                demo_note = "\n(Nota: anche in modalità --demo verrà salvata nel DB locale.)" if self._demo_mode else ""
+                confirmed = messagebox.askyesno("Conferma salvataggio L2", f"Salvare questa preferenza?\n\n{summary}{demo_note}")
+            if not confirmed:
+                return False
+            ok = self.memory.set_preference(pref_key, cleaned)
+            self.refresh_lists()
+            return ok
+
+        if lvl in ("L3", "L4"):
+            prop = self.memory.propose_memory(lvl, cleaned, category=category.strip() or "generale")
+            if prop is None:
+                return False
+            summary = f"[{lvl}:{prop.category}] {prop.content}"
+            if self._confirm_add_fn is not None:
+                confirmed = bool(self._confirm_add_fn(lvl, summary))
+            else:
+                demo_note = "\n(Nota: anche in modalità --demo verrà salvato nel DB locale.)" if self._demo_mode else ""
+                confirmed = messagebox.askyesno(
+                    "Conferma consenso memoria",
+                    f"Confermi di voler salvare permanentemente questo ricordo?\n\n{summary}{demo_note}",
+                )
+            if not confirmed:
+                self.memory.reject_proposal(prop.proposal_id)
+                self.refresh_lists()
+                return False
+            rec = self.memory.confirm_proposal(prop.proposal_id)
+            self.refresh_lists()
+            return rec is not None
+
+        return False
+
+    def open_add_memory_dialog(self) -> None:
+        if not self.memory.config.persistent_enabled:
+            messagebox.showwarning(
+                "Memoria persistente disabilitata",
+                "La memoria persistente è disabilitata. Attiva 'Persistenza attiva' per aggiungere ricordi.",
+            )
+            return
+
+        dlg = tk.Toplevel(self)
+        dlg.title("Aggiungi ricordo — JARVIS")
+        dlg.configure(bg=BG_PANEL)
+        dlg.transient(self.winfo_toplevel())
+        dlg.grab_set()
+        dlg.resizable(False, False)
+
+        tk.Label(dlg, text="Tipo di memoria:", bg=BG_PANEL, fg=TEXT_PRIMARY, font=("Segoe UI", 9, "bold")).pack(anchor="w", padx=12, pady=(10, 2))
+        kind_var = tk.StringVar(value="L3")
+        kind_row = tk.Frame(dlg, bg=BG_PANEL)
+        kind_row.pack(fill="x", padx=12, pady=(0, 6))
+        for val, lbl in (("L2", "Preferenza L2"), ("L3", "Fatto L3"), ("L4", "Episodio L4 (30g)")):
+            tk.Radiobutton(
+                kind_row, text=lbl, value=val, variable=kind_var,
+                bg=BG_PANEL, fg=TEXT_PRIMARY, selectcolor=BG_CARD, activebackground=BG_PANEL, font=("Segoe UI", 8)
+            ).pack(side="left", padx=(0, 8))
+
+        tk.Label(dlg, text="Chiave (solo L2) / Categoria (L3-L4):", bg=BG_PANEL, fg=TEXT_SECONDARY, font=("Segoe UI", 8)).pack(anchor="w", padx=12)
+        key_entry = tk.Entry(dlg, bg=BG_CARD, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY, relief="flat", width=44)
+        key_entry.pack(fill="x", padx=12, pady=(2, 6), ipady=3)
+        key_entry.insert(0, "generale")
+
+        tk.Label(dlg, text="Informazione da ricordare:", bg=BG_PANEL, fg=TEXT_SECONDARY, font=("Segoe UI", 8)).pack(anchor="w", padx=12)
+        text_entry = tk.Entry(dlg, bg=BG_CARD, fg=TEXT_PRIMARY, insertbackground=TEXT_PRIMARY, relief="flat", width=44)
+        text_entry.pack(fill="x", padx=12, pady=(2, 10), ipady=4)
+
+        btn_row = tk.Frame(dlg, bg=BG_PANEL)
+        btn_row.pack(fill="x", padx=12, pady=(0, 12))
+
+        def _on_save() -> None:
+            lvl = kind_var.get()
+            k_or_cat = key_entry.get().strip()
+            txt = text_entry.get().strip()
+            if not txt:
+                messagebox.showwarning("Testo mancante", "Inserisci un testo valido prima di salvare.", parent=dlg)
+                return
+            dlg.destroy()
+            self.add_memory_with_consent(lvl, txt, key=k_or_cat, category=k_or_cat)
+
+        tk.Button(btn_row, text="Salva", command=_on_save, bg=ACCENT_GREEN, fg="#FFFFFF", relief="flat", padx=12, pady=4).pack(side="right", padx=(6, 0))
+        tk.Button(btn_row, text="Annulla", command=dlg.destroy, bg="#475569", fg="#FFFFFF", relief="flat", padx=12, pady=4).pack(side="right")
 
     def _on_select_memory(self) -> None:
         sel = self.mem_list.curselection()
@@ -313,6 +484,8 @@ class MemoryPanel(tk.Frame):
             self.edit_entry.insert(0, info[2])
 
     def save_preference(self) -> bool:
+        if not self.memory.config.persistent_enabled:
+            return False
         k = self.pref_key_entry.get().strip()
         v = self.pref_val_entry.get().strip()
         if not k or not v:
@@ -330,6 +503,12 @@ class MemoryPanel(tk.Frame):
             return False
         item = self.pref_list.get(sel[0])
         key = item.split(" = ", 1)[0]
+        if self._confirm_delete_fn is not None:
+            confirmed = bool(self._confirm_delete_fn(f"L2:{key}"))
+        else:
+            confirmed = messagebox.askyesno("Conferma eliminazione", f"Eliminare la preferenza L2 '{key}'?")
+        if not confirmed:
+            return False
         ok = self.memory.delete_preference(key)
         self.refresh_lists()
         return ok
@@ -353,6 +532,12 @@ class MemoryPanel(tk.Frame):
         info = self._record_map.get(str(sel[0]))
         if not info:
             return False
+        if self._confirm_delete_fn is not None:
+            confirmed = bool(self._confirm_delete_fn(f"{info[0]}#{info[1]}"))
+        else:
+            confirmed = messagebox.askyesno("Conferma eliminazione", f"Eliminare il ricordo [{info[0]}#{info[1]}]?")
+        if not confirmed:
+            return False
         ok = self.memory.delete_memory(info[0], info[1])
         self.refresh_lists()
         return ok
@@ -361,9 +546,16 @@ class MemoryPanel(tk.Frame):
         if self._confirm_wipe_fn is not None:
             confirmed = bool(self._confirm_wipe_fn())
         else:
-            confirmed = messagebox.askyesno(
-                "Conferma cancellazione totale",
+            step1 = messagebox.askyesno(
+                "Conferma cancellazione totale (1/2)",
                 "Vuoi cancellare definitivamente tutte le preferenze L2 e i ricordi L3/L4?",
+            )
+            confirmed = bool(
+                step1
+                and messagebox.askyesno(
+                    "Conferma definitiva (2/2)",
+                    "Operazione irreversibile: confermi l'eliminazione completa del database memoria?",
+                )
             )
         if not confirmed:
             return False
@@ -546,12 +738,18 @@ class SimulatorControlPanel(tk.Frame):
             ).pack(side="left", padx=2)
 
     def set_expression(self, expr: Expression) -> None:
-        self.sim.sm.handle_command(f"STATE:{expr.value}", self.sim._now_ms())
+        now_ms = self.sim._now_ms()
+        self.sim.emotion_enabled = False
+        self.sim.sm.set_expression(expr, now_ms, disable_auto=True)
+        if expr.value in RobotMode.__members__:
+            self.sim.behavior_engine.set_mode(RobotMode(expr.value), now_ms)
         self.sim._highlight_active_button()
         self.refresh()
 
     def look_at(self, dx: int, dy: int) -> None:
-        self.sim.sm.handle_command(f"LOOK:{dx},{dy}", self.sim._now_ms())
+        now_ms = self.sim._now_ms()
+        self.sim.eyes.set_gaze_offset(dx, dy, 2000, now_ms)
+        self.sim.sm.handle_command(f"LOOK:{dx},{dy}", now_ms)
         self.refresh()
 
     def trigger_blink(self) -> None:
@@ -559,6 +757,8 @@ class SimulatorControlPanel(tk.Frame):
 
     def start_sequence(self, name: str) -> None:
         now_ms = self.sim._now_ms()
+        self.sim.sm.auto_demo = False
+        self.sim.emotion_enabled = True
         if name == "GREETING":
             self.sim.eye_v2.play_greeting(now_ms)
         elif name == "CURIOUS_SCAN":
@@ -567,6 +767,7 @@ class SimulatorControlPanel(tk.Frame):
             self.sim.eye_v2.play_affection(now_ms)
         elif name == "MISCHIEVOUS":
             self.sim.eye_v2.play_mischievous(now_ms)
+        self.sim._highlight_active_button()
 
     def refresh(self) -> None:
         self.expr_label_var.set(f"Espressione corrente: {self.sim.eyes.expr.value}")
@@ -656,6 +857,7 @@ class DiagnosticsPanel(tk.Frame):
         self.events_box = tk.Text(ev_card, height=10, bg=BG_CARD, fg=TEXT_SECONDARY, relief="flat", wrap="word", font=("Consolas", 8))
         self.events_box.pack(fill="both", expand=True)
         self.events_box.configure(state="disabled")
+        self._last_diag_text = ""
 
     def refresh(
         self,
@@ -682,7 +884,9 @@ class DiagnosticsPanel(tk.Frame):
         for diag in list(behavior_engine.diagnostics)[-12:]:
             lines.append(f"[{diag.timestamp_ms}ms] {diag.mode.value} | {diag.source}:{diag.event_type} -> {diag.outcome}")
         text = "\n".join(lines) if lines else "Nessun evento diagnostico registrato."
-        self.events_box.configure(state="normal")
-        self.events_box.delete("1.0", "end")
-        self.events_box.insert("1.0", text)
-        self.events_box.configure(state="disabled")
+        if text != self._last_diag_text:
+            self._last_diag_text = text
+            self.events_box.configure(state="normal")
+            self.events_box.delete("1.0", "end")
+            self.events_box.insert("1.0", text)
+            self.events_box.configure(state="disabled")

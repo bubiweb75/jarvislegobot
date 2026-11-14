@@ -14,8 +14,9 @@ for p in (VOICE_DIR, SIM_DIR):
         sys.path.insert(0, str(p))
 
 from behavior_engine import RobotMode  # noqa: E402
-from eye_engine import Expression  # noqa: E402
+from eye_engine import ALL_EXPRESSIONS, Expression  # noqa: E402
 from jarvis_app import JarvisUnifiedApp  # noqa: E402
+from stt_providers import MockSTTProvider  # noqa: E402
 from tts_providers import MockTTSProvider  # noqa: E402
 
 
@@ -145,9 +146,19 @@ class TestControlCenter(unittest.TestCase):
 
         # Simulate unavailable Ollama in diagnostics/dashboard without crashing
         self.app.controller.select_provider("ollama", "llama3.2:3b")
-        self.app._refresh_control_center()
-        self.assertIn("AI(ollama)=", self.app.dashboard_panel.services_var.get())
-        self.assertIn("VoiceController:", self.app.diagnostics_panel.voice_var.get())
+        self.app._apply_probe_result({
+            "pid": "ollama",
+            "ai_ok": False,
+            "ai_status": "offline",
+            "stt_ok": True,
+            "stt_msg": "ok",
+            "tts_ok": True,
+            "voices": ["Mock"],
+            "models": [],
+            "mic_names": ["Mic"],
+        })
+        self.assertIn("AI(ollama)=OFFLINE", self.app.dashboard_panel.services_var.get())
+        self.assertIn("provider=ollama", self.app.diagnostics_panel.voice_var.get())
 
         # Clean shutdown cancels timer and closes DB
         self.app.close()
@@ -196,6 +207,126 @@ class TestControlCenter(unittest.TestCase):
         time.sleep(0.05)
         self.assertTrue(self.app._closed)
         self.assertIsNone(self.app._spontaneous_timer_id)
+
+    def test_09_simulator_14_expressions_look_blink_and_fast_refresh(self) -> None:
+        for expr in ALL_EXPRESSIONS:
+            self.app.simulator_panel.set_expression(expr)
+            # Run >15ms of Tk loop to prove _tick() does NOT revert expression to IDLE
+            deadline = time.monotonic() + 0.03
+            while time.monotonic() < deadline:
+                self.root.update()
+                time.sleep(0.005)
+            self.assertEqual(self.app.sim.eyes.expr, expr)
+
+        self.app.simulator_panel.look_at(8, -4)
+        self.assertEqual(self.app.sim.eyes.left.target_x, self.app.sim.eyes.left.base_x + 8)
+        self.assertEqual(self.app.sim.eyes.left.target_y, self.app.sim.eyes.left.base_y - 4)
+        self.app.simulator_panel.trigger_blink()
+        self.assertNotEqual(self.app.sim.eyes.blink_phase, "OPEN")
+
+        t0 = time.perf_counter()
+        self.app._refresh_control_center()
+        elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        self.assertLess(elapsed_ms, 50.0)
+
+    def test_10_lightweight_demo_mode_and_repeated_open_close(self) -> None:
+        self.app.close()
+        for _ in range(3):
+            with tempfile.TemporaryDirectory() as d:
+                r = tk.Tk()
+                r.withdraw()
+                a = JarvisUnifiedApp(r, data_dir=Path(d), demo_mode=True)
+                try:
+                    self.assertIsInstance(a.controller.stt, MockSTTProvider)
+                    self.assertIsInstance(a.controller.tts, MockTTSProvider)
+                    self.assertEqual(a.controller.active_provider_id, "demo")
+                    self.assertIsNone(a.tick_spontaneous_initiatives(now_ms=200_000))
+                    a.simulator_panel.set_expression(Expression.HAPPY)
+                    r.update()
+                    self.assertEqual(a.sim.eyes.expr, Expression.HAPPY)
+                finally:
+                    a.close()
+
+    def test_11_memory_panel_empty_add_consent_edit_delete_filter_demo_and_disabled(self) -> None:
+        self.app.close()
+        with tempfile.TemporaryDirectory() as d:
+            dpath = Path(d)
+            r = tk.Tk()
+            r.withdraw()
+            a = JarvisUnifiedApp(r, data_dir=dpath, demo_mode=True)
+            allow_add = [False]
+            allow_del = [False]
+            a.memory_panel._confirm_add_fn = lambda _lvl, _summary: allow_add[0]
+            a.memory_panel._confirm_delete_fn = lambda _target: allow_del[0]
+            try:
+                # Initially empty DB -> explanatory message & '+ Aggiungi ricordo' button present
+                self.assertIn("Nessun ricordo salvato", a.memory_panel.empty_info_var.get())
+                self.assertTrue(a.memory_panel.add_btn.winfo_exists())
+
+                # Unconfirmed L3/L4 must NOT be persisted
+                allow_add[0] = False
+                self.assertFalse(a.memory_panel.add_memory_with_consent("L3", "Fatto rifiutato"))
+                self.assertFalse(a.memory_panel.add_memory_with_consent("L4", "Episodio rifiutato"))
+                self.assertEqual(a.memory_panel.mem_list.size(), 0)
+
+                # Confirmed L2, L3, L4 are persisted even in --demo mode
+                allow_add[0] = True
+                self.assertTrue(a.memory_panel.add_memory_with_consent("L2", "espresso", key="caffe"))
+                self.assertTrue(a.memory_panel.add_memory_with_consent("L3", "Marco costruisce LEGO", category="hobby"))
+                self.assertTrue(a.memory_panel.add_memory_with_consent("L4", "Collaudo Control Center", category="sessione"))
+
+                # Filter by L2, L3, L4, Tutti + search
+                a.memory_panel.level_filter_var.set("L2")
+                a.memory_panel.refresh_lists()
+                self.assertEqual(a.memory_panel.pref_list.size(), 1)
+                self.assertEqual(a.memory_panel.mem_list.size(), 0)
+
+                a.memory_panel.level_filter_var.set("L3")
+                a.memory_panel.refresh_lists()
+                self.assertEqual(a.memory_panel.mem_list.size(), 1)
+                self.assertIn("LEGO", a.memory_panel.mem_list.get(0))
+
+                a.memory_panel.level_filter_var.set("L4")
+                a.memory_panel.refresh_lists()
+                self.assertEqual(a.memory_panel.mem_list.size(), 1)
+                self.assertIn("scade", a.memory_panel.mem_list.get(0))
+
+                a.memory_panel.level_filter_var.set("Tutti")
+                a.memory_panel.refresh_lists()
+                self.assertEqual(a.memory_panel.mem_list.size(), 2)
+
+                # Edit selected L3 memory
+                a.memory_panel.mem_list.selection_set(0)
+                a.memory_panel._on_select_memory()
+                a.memory_panel.edit_entry.delete(0, "end")
+                a.memory_panel.edit_entry.insert(0, "Marco costruisce LEGO Technic")
+                self.assertTrue(a.memory_panel.update_selected_memory())
+                self.assertTrue(any("Technic" in x.content for x in a.memory_engine.search_memories("Technic")))
+
+                # Single delete requires confirmation
+                a.memory_panel.mem_list.selection_set(0)
+                allow_del[0] = False
+                self.assertFalse(a.memory_panel.delete_selected_memory())
+                allow_del[0] = True
+                self.assertTrue(a.memory_panel.delete_selected_memory())
+
+                # Disabled persistent memory shows explanation and blocks writes
+                a._on_toggle_persistent_memory(False)
+                self.assertIn("disabilitata", a.memory_panel.empty_info_var.get().lower())
+                self.assertFalse(a.memory_panel.add_memory_with_consent("L3", "Non deve salvarsi"))
+                a._on_toggle_persistent_memory(True)
+            finally:
+                a.close()
+
+            # Persistence across restart
+            r2 = tk.Tk()
+            r2.withdraw()
+            a2 = JarvisUnifiedApp(r2, data_dir=dpath, demo_mode=True)
+            try:
+                self.assertEqual(a2.memory_engine.get_preference("caffe"), "espresso")
+                self.assertEqual(a2.memory_panel.pref_list.size(), 1)
+            finally:
+                a2.close()
 
 
 if __name__ == "__main__":

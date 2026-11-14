@@ -4,9 +4,10 @@ import argparse
 from pathlib import Path
 import queue
 import sys
+import threading
 import tkinter as tk
 from tkinter import ttk
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 SIM_DIR = Path(__file__).resolve().parent.parent / "04-Firmware" / "jarvis-desk-buddy-sim"
 if str(SIM_DIR) not in sys.path:
@@ -33,6 +34,8 @@ from control_center_panels import (  # noqa: E402
 from conversation_engine import ConversationEngine2  # noqa: E402
 from eye_bridge import EyeBridge, SimulatorQueueTransport  # noqa: E402
 from memory_engine import MemoryConfig, MemoryEngine  # noqa: E402
+from stt_providers import MockSTTProvider  # noqa: E402
+from tts_providers import MockTTSProvider  # noqa: E402
 from voice_controller import VoiceController, VoiceEvent, VoicePhase  # noqa: E402
 
 
@@ -45,9 +48,13 @@ class JarvisUnifiedApp:
         root: tk.Tk,
         data_dir: Optional[Path] = None,
         confirm_wipe_fn: Optional[Callable[[], bool]] = None,
+        demo_mode: bool = False,
+        no_spontaneous: bool = False,
     ) -> None:
         self.root = root
-        self.root.title("JARVIS Control Center — BRAIN 2.0")
+        self._demo_mode = bool(demo_mode)
+        self._no_spontaneous = bool(no_spontaneous)
+        self.root.title("JARVIS Control Center — BRAIN 2.0" + (" [DEMO LEGGERA]" if self._demo_mode else ""))
         self.root.configure(bg=BG_DARK)
         self.root.resizable(True, True)
         self.root.minsize(980, 620)
@@ -62,10 +69,15 @@ class JarvisUnifiedApp:
         self._last_error_text = ""
         self._poll_timer_id: Optional[str] = None
         self._spontaneous_timer_id: Optional[str] = None
+        self._probe_timer_id: Optional[str] = None
+        self._probe_running = False
         self._ui_tick_counter = 0
 
         self.config = load_config()
+        if self._demo_mode:
+            self.config.ai_provider = "demo"
         self._event_queue: "queue.Queue[VoiceEvent]" = queue.Queue()
+        self._probe_queue: "queue.Queue[Dict[str, Any]]" = queue.Queue()
         self.eye_transport = SimulatorQueueTransport()
         self.eye_bridge = EyeBridge(transport=self.eye_transport)
 
@@ -93,6 +105,8 @@ class JarvisUnifiedApp:
             eye_bridge=self.eye_bridge,
             on_event=self._on_voice_event_bg,
             emotion_engine=self.sim.emotion_engine,
+            stt=MockSTTProvider("Ciao JARVIS (Demo)") if self._demo_mode else None,
+            tts=MockTTSProvider(delay_s=0.02) if self._demo_mode else None,
         )
         mem_cfg = MemoryConfig.load_json(self._memory_cfg_path)
         self.memory_engine = MemoryEngine(
@@ -107,12 +121,35 @@ class JarvisUnifiedApp:
         self.conv_engine.start_session()
         self.root.protocol("WM_DELETE_WINDOW", self.close)
 
+        self._cached_services_summary = (
+            "Modalità Demo leggera (STT/AI/TTS simulati)"
+            if self._demo_mode
+            else "Verifica servizi in background..."
+        )
+        self._cached_memory_health = self.memory_engine.health_status()
+
         self._tabs: Dict[str, tk.Frame] = {}
         self._build_voice_ui()
-        self._refresh_hardware_status()
+        if self._demo_mode:
+            self.mic_combo["values"] = ["[Demo] Microfono simulato"]
+            self.mic_var.set("[Demo] Microfono simulato")
+            self.stt_status_var.set("STT: Modalità Demo leggera (nessun modello caricato)")
+            self.voice_combo["values"] = ["Mock Voice (Demo)"]
+            self.voice_var.set("Mock Voice (Demo)")
+            self.model_combo["values"] = ["demo-local"]
+            self.model_var.set("demo-local")
+        else:
+            self.mic_combo["values"] = ["Verifica microfono..."]
+            self.mic_var.set("Verifica microfono...")
+            self.stt_status_var.set("STT: verifica in background...")
+            self.voice_combo["values"] = [self.config.tts_voice]
+            self.voice_var.set(self.config.tts_voice)
+            self._probe_timer_id = self.root.after(150, self.refresh_service_status_async)
+
         self._refresh_control_center()
         self._poll_queues()
-        self._schedule_spontaneous_check()
+        if not self._demo_mode and not self._no_spontaneous:
+            self._schedule_spontaneous_check()
 
     def _apply_dark_theme(self) -> None:
         style = ttk.Style(self.root)
@@ -174,6 +211,7 @@ class JarvisUnifiedApp:
             memory_engine=self.memory_engine,
             on_toggle_persistent=lambda val: self._on_toggle_persistent_memory(val),
             confirm_wipe_fn=self._confirm_wipe_fn,
+            demo_mode=self._demo_mode,
         )
         self.personality_panel = PersonalityPanel(
             notebook,
@@ -463,46 +501,58 @@ class JarvisUnifiedApp:
         self.vol_scale.set(self.config.tts_volume)
         self.vol_scale.pack(side="left", fill="x", expand=True, padx=4)
 
-    def _refresh_hardware_status(self) -> None:
-        mics = list_microphones()
-        mic_names = [f"[{m.index}] {m.name}" for m in mics] if mics else ["Nessun microfono rilevato"]
-        self.mic_combo["values"] = mic_names
-        self.mic_var.set(mic_names[0])
-
-        _, stt_msg = self.controller.stt.is_available()
-        self.stt_status_var.set(f"STT: {stt_msg}")
-
-        voices = self.controller.tts.list_voices()
-        if voices:
-            self.voice_combo["values"] = voices
-            if self.config.tts_voice not in voices:
-                self.config.tts_voice = voices[0]
-            self.voice_var.set(self.config.tts_voice)
-        else:
-            self.voice_combo["values"] = ["Nessuna voce TTS locale"]
-            self.voice_var.set("Nessuna voce TTS locale")
-
-        self._refresh_models()
-
-    def _refresh_models(self) -> None:
+    def refresh_service_status_async(self) -> None:
+        self._probe_timer_id = None
+        if self._closed or self._demo_mode or self._probe_running:
+            return
+        self._probe_running = True
         pid = self.provider_var.get()
         prov = self.controller.providers[pid]
-        models = prov.list_models()
-        self.model_combo["values"] = models
-        if models and self.model_var.get() not in models:
-            self.model_var.set(models[0])
-            self.controller.select_provider(pid, models[0])
+
+        def _worker() -> None:
+            try:
+                mics = list_microphones()
+                mic_names = [f"[{m.index}] {m.name}" for m in mics] if mics else ["Nessun microfono rilevato"]
+                stt_ok, stt_msg = self.controller.stt.is_available()
+                voices = self.controller.tts.list_voices()
+                tts_ok = bool(voices)
+                ai_ok, ai_status = prov.is_available()
+                models = prov.list_models()
+                self._probe_queue.put({
+                    "mic_names": mic_names,
+                    "stt_ok": stt_ok,
+                    "stt_msg": stt_msg,
+                    "voices": voices,
+                    "tts_ok": tts_ok,
+                    "pid": pid,
+                    "ai_ok": ai_ok,
+                    "ai_status": ai_status,
+                    "models": models,
+                })
+            except Exception:
+                pass
+            finally:
+                self._probe_running = False
+
+        threading.Thread(target=_worker, daemon=True, name="jarvis-service-probe").start()
+
+    def _refresh_models(self) -> None:
+        if self._demo_mode:
+            self.model_combo["values"] = ["demo-local"]
+            self.model_var.set("demo-local")
+            return
+        self.refresh_service_status_async()
 
     def _on_provider_changed(self) -> None:
         pid = self.provider_var.get()
-        self._refresh_models()
         self.controller.select_provider(pid, self.model_var.get())
-        ok, status = self.controller.providers[pid].is_available()
-        self.phase_var.set(f"Provider {pid}: {status}")
-        if not ok and pid == "ollama":
-            self._set_reply_text(
-                f"Ollama non rilevato ({status}). Resto in attesa senza passare automaticamente al cloud."
-            )
+        if self._demo_mode or pid == "demo":
+            self._cached_services_summary = f"STT=DEMO | AI({pid})=OK | TTS=DEMO"
+            self.phase_var.set(f"Provider {pid}: pronto")
+            self._refresh_control_center()
+            return
+        self.phase_var.set(f"Provider {pid}: verifica in corso...")
+        self.refresh_service_status_async()
 
     def _on_cloud_confirm_toggle(self) -> None:
         self.controller.set_openai_confirmed(self.cloud_confirm_var.get())
@@ -573,6 +623,7 @@ class JarvisUnifiedApp:
         self.persistent_mem_var.set(val)
         self.conv_engine.set_persistent_memory_enabled(val)
         self.memory_engine.config.save_json(self._memory_cfg_path)
+        self._cached_memory_health = self.memory_engine.health_status()
         self.memory_panel.refresh_lists()
         self._refresh_control_center()
 
@@ -632,6 +683,8 @@ class JarvisUnifiedApp:
         self._schedule_spontaneous_check()
 
     def tick_spontaneous_initiatives(self, now_ms: Optional[int] = None) -> Optional[str]:
+        if self._demo_mode or self._no_spontaneous:
+            return None
         ts = self.sim._now_ms() if now_ms is None else now_ms
         if ts < self.STARTUP_GRACE_MS:
             return None
@@ -641,20 +694,20 @@ class JarvisUnifiedApp:
         if self._closed:
             return
         now_ms = self.sim._now_ms()
-        stt_ok, _ = self.controller.stt.is_available()
-        tts_ok = bool(self.controller.tts.list_voices())
-        prov = self.controller.providers[self.controller.active_provider_id]
-        ai_ok, _ = prov.is_available()
-        svc_summary = f"STT={'OK' if stt_ok else 'NO'} | AI({prov.provider_id})={'OK' if ai_ok else 'OFFLINE'} | TTS={'OK' if tts_ok else 'NO'}"
         can_spont, spont_reason = self.sim.behavior_engine.can_trigger_spontaneous_voice(now_ms)
-        spont_summary = "pronta" if can_spont else spont_reason
+        if self._demo_mode:
+            spont_summary = "disabilitate (demo)"
+        elif self._no_spontaneous:
+            spont_summary = "disabilitate (--no-spontaneous)"
+        else:
+            spont_summary = "pronta" if can_spont else spont_reason
 
         self.dashboard_panel.refresh(
             mode=self.sim.behavior_engine.mode,
             expression=self.sim.eyes.expr.value,
             quiet_mode=self.sim.behavior_engine.quiet_mode,
             persistent_enabled=self.memory_engine.config.persistent_enabled,
-            services_summary=svc_summary,
+            services_summary=self._cached_services_summary,
             spontaneous_summary=spont_summary,
             last_error=self._last_error_text,
             esp32_connected=False,
@@ -665,7 +718,7 @@ class JarvisUnifiedApp:
             behavior_engine=self.sim.behavior_engine,
             voice_phase=self.controller.phase.value,
             provider_id=self.controller.active_provider_id,
-            memory_health=self.memory_engine.health_status(),
+            memory_health=self._cached_memory_health,
             last_error=self._last_error_text,
             esp32_connected=False,
         )
@@ -674,7 +727,7 @@ class JarvisUnifiedApp:
         if self._closed:
             return
         self._closed = True
-        for attr in ("_poll_timer_id", "_spontaneous_timer_id"):
+        for attr in ("_poll_timer_id", "_spontaneous_timer_id", "_probe_timer_id"):
             tid = getattr(self, attr, None)
             if tid is not None:
                 try:
@@ -728,11 +781,50 @@ class JarvisUnifiedApp:
             else:
                 self.talk_btn.configure(text="Parla (Avvia Ascolto)", bg="#0284C7")
 
+        while True:
+            try:
+                probe = self._probe_queue.get_nowait()
+            except queue.Empty:
+                break
+            self._apply_probe_result(probe)
+
         self._ui_tick_counter += 1
-        if self._ui_tick_counter % 10 == 0:
+        if self._ui_tick_counter % 40 == 0:
             self._refresh_control_center()
 
         self._poll_timer_id = self.root.after(25, self._poll_queues)
+
+    def _apply_probe_result(self, probe: Dict[str, Any]) -> None:
+        mic_names = probe.get("mic_names") or ["Nessun microfono rilevato"]
+        self.mic_combo["values"] = mic_names
+        if self.mic_var.get() not in mic_names:
+            self.mic_var.set(mic_names[0])
+
+        self.stt_status_var.set(f"STT: {probe.get('stt_msg', '')}")
+        voices = probe.get("voices") or []
+        if voices:
+            self.voice_combo["values"] = voices
+            if self.config.tts_voice not in voices:
+                self.config.tts_voice = voices[0]
+            self.voice_var.set(self.config.tts_voice)
+        else:
+            self.voice_combo["values"] = ["Nessuna voce TTS locale"]
+            self.voice_var.set("Nessuna voce TTS locale")
+
+        pid = str(probe.get("pid", self.provider_var.get()))
+        models = probe.get("models") or []
+        self.model_combo["values"] = models
+        if models and self.model_var.get() not in models:
+            self.model_var.set(models[0])
+            self.controller.select_provider(pid, models[0])
+
+        stt_ok = bool(probe.get("stt_ok"))
+        ai_ok = bool(probe.get("ai_ok"))
+        tts_ok = bool(probe.get("tts_ok"))
+        self._cached_services_summary = (
+            f"STT={'OK' if stt_ok else 'NO'} | AI({pid})={'OK' if ai_ok else 'OFFLINE'} | TTS={'OK' if tts_ok else 'NO'}"
+        )
+        self._refresh_control_center()
 
     def _handle_eye_cmd(self, cmd: str, now_ms: int) -> None:
         self.sim.sm.handle_command(cmd, now_ms)
@@ -740,12 +832,14 @@ class JarvisUnifiedApp:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="JARVIS AI Desk Buddy — Simulator + Voice & AI")
+    parser = argparse.ArgumentParser(description="JARVIS Control Center — Simulator + Voice & AI")
     parser.add_argument("--smoke-ms", type=int, default=0, help="Auto-close after N ms for GUI smoke tests")
+    parser.add_argument("--demo", action="store_true", help="Avvia in modalità demo leggera (senza STT/Ollama/Piper/spontanee)")
+    parser.add_argument("--no-spontaneous", action="store_true", help="Disabilita le iniziative vocali spontanee in modalità normale")
     args = parser.parse_args()
 
     root = tk.Tk()
-    app = JarvisUnifiedApp(root)
+    app = JarvisUnifiedApp(root, demo_mode=args.demo, no_spontaneous=args.no_spontaneous)
     if args.smoke_ms > 0:
         root.after(args.smoke_ms, app.close)
     root.mainloop()

@@ -89,6 +89,29 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 
 ---
 
+## Avvio JARVIS Control Center & Stato Collaudo Software (Windows 11)
+
+### Avvio rapido
+- **Avvio normale (Voice AI reale: Microfono + faster-whisper + Ollama + Piper):**
+  - Doppio clic su `Start_JARVIS_Control_Center.bat`, oppure da PowerShell:
+    ```powershell
+    & "05-Voice-AI\.venv\Scripts\python.exe" "05-Voice-AI\jarvis_app.py"
+    ```
+  - Per disabilitare le iniziative vocali spontanee in modalità normale:
+    ```powershell
+    & "05-Voice-AI\.venv\Scripts\python.exe" "05-Voice-AI\jarvis_app.py" --no-spontaneous
+    ```
+- **Avvio in modalità Demo leggera (senza STT/Ollama/Piper/spontanee):**
+  ```powershell
+  & "05-Voice-AI\.venv\Scripts\python.exe" "05-Voice-AI\jarvis_app.py" --demo
+  ```
+
+### Stato effettivo del collaudo
+- ✅ **Software Windows 11 collaudato**: Control Center a 8 schede, simulatore OLED fluido, scheda Memoria (L2/L3/L4 con consenso esplicito, ricerca, filtri, modifica/eliminazione), integrazione memoria con `Ollama qwen2.5:3b` e conversazione vocale reale end-to-end (`Microfono` → `faster-whisper` → `Ollama qwen2.5:3b` → `Piper Riccardo`).
+- ⏳ **Hardware fisico ESP32-S3**: non ancora testato fisicamente; il collaudo su scheda reale e periferiche resta da eseguire.
+
+---
+
 ## Regole di Progetto
 - Nessuna modifica o interruzione ai servizi esistenti sul Raspberry Pi 5.
 - Nessuna credenziale o API key nei sorgenti (solo variabili d'ambiente / `.env`).
