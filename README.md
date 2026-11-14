@@ -63,7 +63,8 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 
 *(Nota: la precedente bozza Testa+Collo+Busto in `archive/02-LEGO/` e le vecchie iterazioni `06..09` in `archive/legacy-mechanical-design/` sono state archiviate. Il design LEGO definitivo attivo è [Companion Hybrid v2 — Visiera Capsula Arrotondata SNOT](03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md)).*
 
-### FASE 6 – Preparazione Elettronica ESP32-S3 e Integrazione USB (`06-Hardware-Integration/`)
+### FASE 6 & FASE 8.2B-0 – Preparazione Elettronica ESP32-S3, Schemi e Guida al Montaggio (`06-Hardware-Integration/`)
+- [GUIDA_MONTAGGIO_ELETTRONICA.md](06-Hardware-Integration/GUIDA_MONTAGGIO_ELETTRONICA.md) — **Guida illustrata passo per passo al montaggio, verifiche elettriche, collaudo in 6 test e integrazione LEGO `Companion Hybrid v2`** (con schemi SVG in `06-Hardware-Integration/images/`: [Schema Generale](06-Hardware-Integration/images/01_schema_elettrico_generale.svg), [Test 1-3](06-Hardware-Integration/images/02_test_1_2_3_esp32_oled_pulsante.svg), [Test 4-5 Audio](06-Hardware-Integration/images/03_test_4_5_audio_i2s.svg), [Test 6 Sensori](06-Hardware-Integration/images/04_test_6_sensori_i2c_touch.svg), [Esploso LEGO](06-Hardware-Integration/images/05_integrazione_lego_esploso.svg))
 - [HARDWARE_PINOUT.md](06-Hardware-Integration/HARDWARE_PINOUT.md) — Verifica pinout ESP32-S3-DevKitC-1 N16R8 e mappatura completa OLED, INMP441, MAX98357A, Speaker e Pulsante
 - [WIRING_GUIDE.md](06-Hardware-Integration/WIRING_GUIDE.md) — Schema elettronico leggibile e regole di cablaggio su breadboard
 - [AUDIO_ARCHITECTURE.md](06-Hardware-Integration/AUDIO_ARCHITECTURE.md) — Strategia audio bidirezionale su USB-CDC, formati PCM, banda, buffer e interruzioni
@@ -74,10 +75,16 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 
 ---
 
-## Architettura di Riferimento (v1)
-- **Hardware Robot:** ESP32-S3-DevKitC-1 N16R8 + Display OLED 1,3" 128×64 I2C (SH1106/SSD1306) + Microfono I2S INMP441 + Amplificatore I2S MAX98357A + Speaker 4 Ω / 3 W + Pulsante meccanico su `GPIO 47`.
-- **Firmware:** Variante di `bread-compact-wifi` da [78/xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) con `GPIO 39/40` disabilitati e comunicazione WebSocket su LAN.
-- **Backend Raspberry Pi 5 (Debian 13 ARM64):** Stack Docker isolato *Server-Only* (`xiaozhi-esp32-server:server_latest` ARM64) con ASR italiano (`Vosk` / opz. `Whisper`), TTS (`EdgeTTS`), LLM online (con futura estensione `Ollama` su PC Windows 11) e bridge di telemetria isolato (`jarvis-sys-bridge` + `docker-socket-proxy` solo `GET`).
+## Architettura di Riferimento
+
+### Architettura Attuale (Windows 11 + ESP32-S3, `main`)
+- **Hardware Robot:** ESP32-S3-DevKitC-1 N16R8 + Display OLED 1,3" 128×64 I²C (`SH1106`/`SSD1306`) + Pulsante meccanico (`GPIO 47`) + predisposizione audio I²S (`INMP441`, `MAX98357A`, Speaker 36 mm 4 Ω / 3 W) e sensori (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`).
+- **Firmware ESP32-S3:** `04-Firmware/jarvis-desk-buddy/` (14 espressioni OLED, protocollo seriale USB-CDC `PING`/`STATUS`/`DIAG`/`STATE`/`LOOK`, stub sensori `FASE 8.2A`).
+- **Voice AI & Simulatore su PC Windows 11:** `05-Voice-AI/` (`faster-whisper` + `Ollama qwen2.5:3b` + voce personalizzata `Piper Riccardo Amichetto Vivace`) + `04-Firmware/jarvis-desk-buddy-sim/` (`EmotionEngine` Personalità C e `Sensor Lab`).
+
+### Architettura Storica (v1 iniziale, FASE 6)
+- **Firmware iniziale di riferimento:** variante di `bread-compact-wifi` da [78/xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) con `GPIO 39/40` disabilitati e comunicazione WebSocket su LAN.
+- **Backend Raspberry Pi 5 (Debian 13 ARM64):** stack Docker isolato *Server-Only* (`xiaozhi-esp32-server:server_latest` ARM64) con ASR (`Vosk`/`Whisper`), TTS (`EdgeTTS`) e bridge di telemetria isolato (`jarvis-sys-bridge` + `docker-socket-proxy` solo `GET`).
 
 ---
 

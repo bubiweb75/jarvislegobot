@@ -14,10 +14,13 @@
   2. Verificare in *Gestione Dispositivi* di Windows la comparsa della porta COM USB-CDC.
   3. Compilare e caricare il firmware già presente in `04-Firmware/jarvis-desk-buddy` usando inizialmente l'ambiente `esp32s3_sh1106` (`pio run -e esp32s3_sh1106 -t upload`).
   4. Aprire il Serial Monitor a `115200` baud e leggere il log di avvio (`I2C OLED detected at 0x3C`).
-  5. Testare le sette espressioni inviando `STATE:NEUTRAL`, `STATE:HAPPY`, `STATE:CURIOUS`, `STATE:LISTENING`, `STATE:THINKING`, `STATE:SPEAKING`, `STATE:SLEEPY` (oppure premendo il pulsante su `GPIO 47`).
+  5. Testare tutte e **14 le espressioni OLED** (estensione delle 7 espressioni storiche della FASE 6):
+     - *7 espressioni base (FASE 4/6):* `STATE:IDLE` (`NEUTRAL`), `STATE:HAPPY`, `STATE:CURIOUS`, `STATE:LISTENING`, `STATE:THINKING`, `STATE:SPEAKING`, `STATE:SLEEPY`
+     - *7 espressioni emotive (FASE 7/8.2A):* `STATE:SURPRISED`, `STATE:SHY`, `STATE:LOVE`, `STATE:WINK`, `STATE:CONFUSED`, `STATE:MISCHIEVOUS`, `STATE:SLEEPING`
+     - Verificare inoltre i comandi `PING`, `STATUS`, `DIAG`, `LOOK:5,-3` e il pulsante su `GPIO 47`.
   6. Se lo schermo presenta uno spostamento orizzontale di 2 pixel o una barra di rumore sul bordo, compilare e caricare `esp32s3_ssd1306`.
-- **Risultati attesi:** Rilevamento I²C a `0x3C` (o `0x3D`), occhi nitidi e centrati a 50 FPS, tutte e 7 le espressioni distinguibili.
-- **Criteri di superamento:** Porta COM stabile, `I2C OLED detected`, zero artefatti grafici su tutte le 7 espressioni.
+- **Risultati attesi:** Rilevamento I²C a `0x3C` (o `0x3D`), occhi nitidi e centrati a 50 FPS, tutte e 14 le espressioni distinguibili.
+- **Criteri di superamento:** Porta COM stabile, `I2C OLED detected`, zero artefatti grafici su tutte le 14 espressioni.
 - **Diagnosi errori:**
   - *Porta COM assente:* verificare cavo USB-C (deve essere dati, non solo ricarica) o provare modalità bootloader (`BOOT` + `RST`).
   - *`WARN: No OLED ACK`:* verificare inversione `SDA`/`SCL` (`41`/`42`), polarità `VCC`/`GND` e tensione `3.3 V` ai pin OLED.
