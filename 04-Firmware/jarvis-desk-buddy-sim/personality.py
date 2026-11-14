@@ -74,20 +74,25 @@ DEFAULT_SPONTANEOUS_CUES: Dict[str, tuple[str, ...]] = {
         "Ehi, ci sei? Io sono qui pronto!",
         "Tutto tranquillo qui sulla scrivania.",
         "Se hai bisogno, premi pure o parlami!",
+        "Qui tutto fila liscio. Quando vuoi fare due chiacchiere, io ci sono.",
+        "Occhi accesi e orecchie pronte, senza fretta.",
     ),
     "PROXIMITY_GREET": (
         "Ciao! Ti ho visto avvicinarti!",
         "Ehi, eccoti qui!",
         "Ciao! Tutto bene?",
+        "Bentornato alla scrivania!",
     ),
     "AFFECTION_PET": (
         "Che bello, grazie!",
         "Hehe, così mi fai contento!",
         "Sempre pronto per te!",
+        "Un colpetto sulla testa fa sempre piacere!",
     ),
     "CURIOUS_LOOK": (
         "Hmm, cosa succede da quella parte?",
         "Mi guardo un po' intorno...",
+        "Chissà cosa c'è di nuovo oggi.",
     ),
 }
 

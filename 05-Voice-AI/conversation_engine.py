@@ -25,6 +25,11 @@ if str(_SIM_DIR) not in sys.path:
     sys.path.insert(0, str(_SIM_DIR))
 
 from behavior_engine import BehaviorEngine, RobotMode  # noqa: E402
+from conversation_naturalizer import (  # noqa: E402
+    build_turn_instructions,
+    prepare_for_tts,
+    select_reply_expression,
+)
 from memory_engine import MemoryEngine, MemoryProposal, MemoryRecord  # noqa: E402
 from tts_providers import TTSProvider  # noqa: E402
 from voice_controller import VoiceController, VoicePhase  # noqa: E402
@@ -136,9 +141,10 @@ class ConversationEngine2:
         self._start_monotonic = time.monotonic()
 
         # Wire hooks into existing VoiceController without duplicating its state machine
-        self.voice.system_context_provider = self.build_bounded_memory_context
+        self.voice.system_context_provider = self.build_turn_system_context
         self.voice.on_phase_change = self._on_voice_phase_changed
         self.voice.custom_speak_fn = self._speak_reply
+        self.voice.reply_expression_provider = self.select_expression_for_reply
 
     def _now_ms(self) -> int:
         return int((time.monotonic() - self._start_monotonic) * 1000.0)
@@ -196,6 +202,19 @@ class ConversationEngine2:
         if len(joined) > MAX_MEMORY_CONTEXT_CHARS:
             joined = joined[:MAX_MEMORY_CONTEXT_CHARS].rsplit("\n", 1)[0].strip()
         return joined
+
+    def build_turn_system_context(self, user_text: str) -> str:
+        """Combine Personality/Naturalizer turn instructions with bounded L1-L4 memory context."""
+        history = self.voice.conversation.get_messages_for_model()
+        style_ctx = build_turn_instructions(self.behavior.personality.config, user_text, history_messages=history)
+        mem_ctx = self.build_bounded_memory_context(user_text)
+        if mem_ctx:
+            return f"{style_ctx}\n\n{mem_ctx}"
+        return style_ctx
+
+    def select_expression_for_reply(self, user_text: str, reply_text: str) -> str:
+        """Select a validated firmware OLED expression for the completed reply."""
+        return select_reply_expression(user_text, reply_text, self.behavior.personality.config)
 
     def propose_fact(self, content: str, category: str = "user_note") -> Optional[MemoryProposal]:
         return self.memory.propose_memory("L3", content, category=category)
@@ -280,8 +299,9 @@ class ConversationEngine2:
         on_done: Optional[Callable[[Optional[str]], None]],
         on_audio_level: Optional[Callable[[float], None]],
     ) -> None:
+        tts_text = prepare_for_tts(text)
         self.speech_queue.speak_ordered(
-            text=text,
+            text=tts_text,
             voice=voice,
             rate=rate,
             volume=volume,

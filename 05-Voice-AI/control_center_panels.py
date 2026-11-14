@@ -22,6 +22,7 @@ from tkinter import messagebox, ttk
 from typing import Any, Callable, Dict, Optional
 
 from behavior_engine import BehaviorEngine, RobotMode
+from conversation_naturalizer import describe_personality
 from eye_engine import ALL_EXPRESSIONS, Expression
 from personality import PersonalityConfig, PersonalityProfile
 from sensor_manager import SensorManager, SensorType
@@ -640,6 +641,20 @@ class PersonalityPanel(tk.Frame):
             font=("Segoe UI", 8),
         ).pack(anchor="w")
 
+        preview_card = _card(self, "Anteprima Comportamento")
+        preview_card.pack(fill="x", pady=(8, 0))
+        self.preview_var = tk.StringVar(value=describe_personality(cfg))
+        tk.Label(
+            preview_card,
+            textvariable=self.preview_var,
+            bg=BG_PANEL,
+            fg=ACCENT_CYAN,
+            anchor="w",
+            justify="left",
+            wraplength=420,
+            font=("Segoe UI", 8),
+        ).pack(fill="x")
+
     def apply_and_save(self) -> PersonalityConfig:
         new_cfg = PersonalityConfig(
             expressive_intensity=float(self._scales["expressive_intensity"].get()),
@@ -652,6 +667,7 @@ class PersonalityPanel(tk.Frame):
             initiatives_enabled=bool(self.initiatives_var.get()),
         ).normalized()
         self.profile.update_config(new_cfg)
+        self.preview_var.set(describe_personality(new_cfg))
         save_personality_config_json(self.config_path, new_cfg)
         return new_cfg
 

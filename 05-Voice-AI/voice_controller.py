@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+import re
 import sys
 import threading
 import time
@@ -87,10 +88,11 @@ class VoiceController:
         self._lock = threading.Lock()
         self._cancel_gen = 0
         self._happy_timer: Optional[threading.Timer] = None
-        # Optional FASE 9.3 ConversationEngine2 hooks
+        # Optional FASE 9.3 / 9.5 ConversationEngine2 hooks
         self.system_context_provider: Optional[Callable[[str], str]] = None
         self.on_phase_change: Optional[Callable[[VoicePhase], None]] = None
         self.custom_speak_fn: Optional[Callable[..., None]] = None
+        self.reply_expression_provider: Optional[Callable[[str, str], str]] = None
 
     def _now_ms(self) -> int:
         return int((time.monotonic() - self._start_monotonic) * 1000.0)
@@ -274,7 +276,9 @@ class VoiceController:
         if self._is_cancelled(gen):
             return
 
-        self.conversation.add_assistant_message(resp.text)
+        raw_reply = resp.text
+        clean_reply = re.sub(r"\s*\[EMO\s*:\s*[A-Za-z0-9_]+\s*\]\s*", " ", raw_reply, flags=re.IGNORECASE).strip() or raw_reply
+        self.conversation.add_assistant_message(clean_reply)
 
         with self._lock:
             if gen != self._cancel_gen:
@@ -287,7 +291,7 @@ class VoiceController:
             VoiceEvent(
                 phase=VoicePhase.SPEAKING,
                 transcript=user_text,
-                reply=resp.text,
+                reply=clean_reply,
                 provider_label=resp.provider_name,
                 status_text="JARVIS sta parlando...",
             )
@@ -313,6 +317,13 @@ class VoiceController:
             if decision is not None:
                 self.eye_bridge.set_state(decision.expression.value)
                 self._schedule_idle_after_happy(gen, delay_s=max(0.8, decision.duration_ms / 1000.0))
+            elif self.reply_expression_provider is not None:
+                expr_name = self.reply_expression_provider(user_text, raw_reply)
+                if expr_name and expr_name != "IDLE":
+                    self.eye_bridge.set_state(expr_name)
+                    self._schedule_idle_after_happy(gen, delay_s=1.6)
+                else:
+                    self.eye_bridge.set_state("IDLE")
             elif resp.sentiment == "happy":
                 self.eye_bridge.set_state("HAPPY")
                 self._schedule_idle_after_happy(gen, delay_s=1.6)

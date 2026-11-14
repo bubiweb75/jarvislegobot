@@ -31,6 +31,8 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 | **FASE 6** | Preparazione elettronica ESP32-S3, architettura audio USB e piano collaudo | ✅ Documentazione pronta (`06-Hardware-Integration/`), in attesa componenti |
 | **FASE 7** | Emotion &amp; Reaction Engine (Personalità C, 14 espressioni OLED, integrato su PC/Simulatore) | ✅ Implementato e consolidato (`ab98924`) |
 | **FASE 8** | Progettazione sensori (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`) + **FASE 8.1 Sensor Lab simulato** | ✅ Progetto e simulatore PC pronti (`06-Hardware-Integration/FASE_8_SENSORY_INTERACTION.md`); hardware da collaudare |
+| **FASE 9.1–9.4** | JARVIS BRAIN 2.0: BehaviorEngine, MemoryEngine (L1–L4), ConversationEngine 2.0, Control Center | ✅ Completate e consolidate su `main` (`dc23494`) |
+| **FASE 9.5** | **Natural Conversation & Personality 2.0** (`conversation_naturalizer.py`, carattere "Amichetto Vivace") | ✅ Completata e collaudata su Windows 11 (hardware ESP32-S3 da collaudare) |
 
 ---
 
@@ -107,8 +109,16 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
   ```
 
 ### Stato effettivo del collaudo
-- ✅ **Software Windows 11 collaudato**: Control Center a 8 schede, simulatore OLED fluido, scheda Memoria (L2/L3/L4 con consenso esplicito, ricerca, filtri, modifica/eliminazione), integrazione memoria con `Ollama qwen2.5:3b` e conversazione vocale reale end-to-end (`Microfono` → `faster-whisper` → `Ollama qwen2.5:3b` → `Piper Riccardo`).
+- ✅ **Software Windows 11 collaudato**: Control Center a 8 schede, simulatore OLED fluido, scheda Memoria (L2/L3/L4 con consenso esplicito, ricerca, filtri, modifica/eliminazione), integrazione memoria con `Ollama qwen2.5:3b`, conversazione vocale reale end-to-end (`Microfono` → `faster-whisper` → `Ollama qwen2.5:3b` → `Piper Riccardo`) e **FASE 9.5 — Natural Conversation & Personality 2.0** (collaudo qualitativo utente superato, incluse le prove su tono giocoso, complicità e cambio di registro).
 - ⏳ **Hardware fisico ESP32-S3**: non ancora testato fisicamente; il collaudo su scheda reale e periferiche resta da eseguire.
+
+### FASE 9.5 — Natural Conversation & Personality 2.0
+- **Personalità "Amichetto Vivace"**: compagno robotico naturale in italiano colloquiale, curioso, affettuoso in modo equilibrato e leggermente birichino quando il contesto lo consente, senza affermare sentimenti o bisogni umani reali.
+- **Conversation Naturalizer (`05-Voice-AI/conversation_naturalizer.py`)**: istruzioni dinamiche per turno senza chiamate LLM extra; adatta registro e lunghezza tra conversazione giocosa, richieste tecniche (precisione senza battute fuori luogo), situazioni serie/delicate e richieste brevi, riducendo aperture ripetitive e domande finali forzate.
+- **Slider Personalità (`PersonalityPanel`)**: `Intensità espressiva`, `Curiosità`, `Giocosità`, `Affettuosità`, `Birichineria` e `Frequenza iniziative` aggiornano in tempo reale `PersonalityProfile`, l'area **Anteprima Comportamento** e il tono effettivo delle risposte di Ollama (rispettando anche i profili pacati).
+- **Continuità del dialogo**: gestione coerente di follow-up a breve termine (*"E poi?"*, *"Perché?"*, *"Spiegamelo meglio"*, *"Non ho capito"*, *"Intendevo un'altra cosa"*, *"Torniamo a quello di prima"*) distinta dalla memoria persistente.
+- **Memoria contestuale**: integrazione di preferenze L2 e ricordi confermati L3/L4 con consenso esplicito, isolati come dati non attendibili (`MEMORIA_LOCALE_DATI`) e disabilitabili da Control Center.
+- **Espressività OLED & Piper Riccardo**: mappatura a fine turno sull'elenco chiuso delle 14 espressioni firmware (`IDLE`, `HAPPY`, `CURIOUS`, `THINKING`, `SURPRISED`, `WINK`, `MISCHIEVOUS`, `CONFUSED`, ecc.), pulizia di markdown e tag tecnici prima della sintesi con Piper Riccardo (`SentenceSpeechQueue`), interruzione vocale immediata e rispetto dei limiti sulle iniziative spontanee (max 2/ora, min 20 minuti, Quiet Mode, `--no-spontaneous`).
 
 ---
 
