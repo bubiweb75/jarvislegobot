@@ -107,6 +107,15 @@ def shape_piper_wav(
         new_peak = float(np.max(np.abs(blended))) + 1e-6
         samples = (blended * (orig_peak / new_peak)).astype(np.float32)
 
+    # Loudness maximizer + soft limiter so pitched speech matches normal PC app volume
+    nz_mask = np.abs(samples) > 0.01
+    if np.any(nz_mask):
+        active_rms = float(np.sqrt(np.mean(samples[nz_mask] ** 2)))
+        if active_rms > 1e-4:
+            gain = min(5.0, 0.48 / active_rms)
+            if gain > 1.0:
+                samples = np.tanh((samples * gain) / 0.96).astype(np.float32) * 0.96
+
     vol_scale = max(0.0, min(1.0, float(volume) / 100.0))
     samples = samples * vol_scale
     duration_s = len(samples) / float(sr) if sr > 0 else 0.0

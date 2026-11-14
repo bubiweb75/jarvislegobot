@@ -35,7 +35,7 @@ class JarvisConfig:
 
     tts_voice: str = "JARVIS Amichetto (Piper Riccardo)"
     tts_rate: int = 1
-    tts_volume: int = 90
+    tts_volume: int = 100
     piper_pitch_semitones: float = 5.0
     piper_speed: float = 1.21
     piper_noise_scale: float = 1.10

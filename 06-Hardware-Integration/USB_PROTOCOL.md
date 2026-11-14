@@ -14,6 +14,14 @@ Il firmware attuale (`04-Firmware/jarvis-desk-buddy`) e `SerialEyeTransport` (`0
 - All'avvio, il firmware può restare in ascolto sia di righe ASCII (`STATE:...`) per test manuali da Serial Monitor (Test 1 e Test 2), sia passare automaticamente in **Modalità Framed Binaria** non appena riceve il preambolo binario `0xAA 0x55` (o un comando `PROTO:BIN`).
 - I comandi testuali degli occhi continuano a usare esattamente le stesse stringhe, incapsulate nel payload del frame `0x01 CMD_TEXT`.
 
+### 1.1 Stati Base ESP32-S3 vs Estensione FASE 7 (PC / Emotion Engine)
+
+| Categoria | Comandi `STATE:*` | Stato Implementazione | Note di Compatibilità |
+|---|---|---|---|
+| **Core (7 originali)** | `IDLE`, `HAPPY`, `CURIOUS`, `LISTENING`, `THINKING`, `SPEAKING`, `SLEEPY` | Implementati sia su **PC/Simulatore** che su **Firmware ESP32-S3** (`state_machine.cpp`) | Pienamente supportati su hardware reale al collaudo |
+| **FASE 7 (7 nuovi)** | `SURPRISED`, `SHY`, `LOVE`, `WINK`, `CONFUSED`, `MISCHIEVOUS`, `SLEEPING` | Implementati su **PC/Simulatore (`eye_engine.py`, `emotion_engine.py`)**; **non ancora compilati** nel firmware ESP32-S3 | L'ESP32-S3 attuale ignora o risponde `ERR` senza bloccarsi; per uso futuro su ESP32-S3 è prevista mappatura di fallback (es. `LOVE`→`HAPPY`, `CONFUSED`→`CURIOUS`, `SLEEPING`→`SLEEPY`) o porting in `eye_engine.cpp` dopo verifica PlatformIO |
+| **Controllo** | `BLINK`, `LOOK:<dx>,<dy>`, `AUTO:ON`, `AUTO:OFF`, `PING`, `STATUS` | Implementati su **PC/Simulatore** e **ESP32-S3** | Identici |
+
 ---
 
 ## 2. Formato del Frame Binario

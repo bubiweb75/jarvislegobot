@@ -2,6 +2,7 @@
 
 import unittest
 
+from emotion_engine import EmotionConfig, EmotionEngine, StimulusType, detect_text_stimulus
 from eye_engine import ALL_EXPRESSIONS, EyeEngine, Expression, SimulatorStateMachine
 from monochrome_fb import BUFFER_SIZE, HEIGHT, WIDTH
 
@@ -114,6 +115,97 @@ class TestJarvisSimulator(unittest.TestCase):
         self.assertEqual(sm.handle_command("LOOK:10,-4", 30), "OK:LOOK")
         self.assertEqual(sm.handle_command("AUTO:ON", 40), "OK:AUTO=ON")
         self.assertTrue(sm.auto_demo)
+
+    def test_all_14_serial_state_commands(self) -> None:
+        self.assertEqual(len(ALL_EXPRESSIONS), 14)
+        eyes = EyeEngine(fps=50, spacing_px=16)
+        sm = SimulatorStateMachine(eyes, auto_demo=False)
+        for idx, expr in enumerate(ALL_EXPRESSIONS):
+            resp = sm.handle_command(f"STATE:{expr.value}", (idx + 1) * 50)
+            self.assertEqual(resp, f"EVENT:STATE={expr.value}")
+            self.assertEqual(eyes.expr, expr)
+
+
+class TestEmotionEngine(unittest.TestCase):
+    def test_priority_preemption_and_return_to_idle(self) -> None:
+        eng = EmotionEngine(seed=101)
+        d1 = eng.push_stimulus(StimulusType.GREETING, now_ms=100)
+        self.assertIsNotNone(d1)
+        self.assertIn(d1.expression, (Expression.HAPPY, Expression.WINK))
+
+        # Higher-priority SUDDEN_NOISE must preempt active GREETING immediately
+        d2 = eng.push_stimulus(StimulusType.SUDDEN_NOISE, now_ms=300)
+        self.assertIsNotNone(d2)
+        self.assertEqual(d2.expression, Expression.SURPRISED)
+        self.assertEqual(eng.current_expression, Expression.SURPRISED)
+
+        # After duration expires, engine returns to IDLE
+        eng.tick(now_ms=300 + d2.duration_ms + 50)
+        self.assertEqual(eng.current_expression, Expression.IDLE)
+
+    def test_cooldown_prevents_spam(self) -> None:
+        eng = EmotionEngine(seed=102)
+        first = eng.push_stimulus(StimulusType.SUDDEN_NOISE, now_ms=1000)
+        self.assertIsNotNone(first)
+        second = eng.push_stimulus(StimulusType.SUDDEN_NOISE, now_ms=2000)
+        self.assertIsNone(second)
+        # After cooldown (6000ms), stimulus works again
+        third = eng.push_stimulus(StimulusType.SUDDEN_NOISE, now_ms=7200)
+        self.assertIsNotNone(third)
+
+    def test_conversation_busy_suppresses_spontaneous(self) -> None:
+        cfg = EmotionConfig(spontaneous_interval_ms=1000)
+        eng = EmotionEngine(config=cfg, seed=103)
+        eng.set_conversation_busy(True, now_ms=100, phase_expr=Expression.LISTENING)
+        self.assertEqual(eng.current_expression, Expression.LISTENING)
+        self.assertIsNone(eng.tick(now_ms=5000))
+        self.assertEqual(eng.current_expression, Expression.LISTENING)
+        eng.set_conversation_busy(False, now_ms=5100)
+        self.assertEqual(eng.current_expression, Expression.IDLE)
+
+    def test_inactivity_sleepy_sleeping_and_wakeup(self) -> None:
+        cfg = EmotionConfig(
+            spontaneous_enabled=False,
+            inactivity_sleepy_ms=5000,
+            inactivity_sleeping_ms=12000,
+        )
+        eng = EmotionEngine(config=cfg, seed=104)
+        eng.tick(now_ms=5200)
+        self.assertEqual(eng.current_expression, Expression.SLEEPY)
+        eng.tick(now_ms=16000)
+        self.assertTrue(eng.is_sleeping)
+        self.assertEqual(eng.current_expression, Expression.SLEEPING)
+
+        wake = eng.touch_activity(now_ms=17000)
+        self.assertIsNotNone(wake)
+        self.assertFalse(eng.is_sleeping)
+        self.assertEqual(eng.current_expression, Expression.HAPPY)
+
+    def test_silent_mode_and_reproducible_seed(self) -> None:
+        cfg = EmotionConfig(silent_mode=True)
+        eng = EmotionEngine(config=cfg, seed=2026)
+        dec = eng.push_stimulus(StimulusType.COMPLIMENT, now_ms=100)
+        self.assertIsNotNone(dec)
+        self.assertIn(dec.expression, (Expression.LOVE, Expression.SHY))
+        self.assertIsNone(dec.voice_line)
+
+        a = EmotionEngine(seed=999)
+        b = EmotionEngine(seed=999)
+        da = a.push_stimulus(StimulusType.JOKE, now_ms=100)
+        db = b.push_stimulus(StimulusType.JOKE, now_ms=100)
+        self.assertEqual(da.expression, db.expression)
+        self.assertEqual(da.voice_line, db.voice_line)
+
+    def test_text_stimulus_detection_and_error(self) -> None:
+        self.assertEqual(detect_text_stimulus("Ciao Jarvis!"), StimulusType.GREETING)
+        self.assertEqual(detect_text_stimulus("Sei bravissimo, grazie!"), StimulusType.COMPLIMENT)
+        self.assertEqual(detect_text_stimulus("Ahah che battuta!"), StimulusType.JOKE)
+        self.assertEqual(detect_text_stimulus("Come funziona il motore?"), StimulusType.QUESTION)
+
+        eng = EmotionEngine(seed=55)
+        err = eng.push_stimulus(StimulusType.TEMP_ERROR, now_ms=500)
+        self.assertIsNotNone(err)
+        self.assertEqual(err.expression, Expression.CONFUSED)
 
 
 if __name__ == "__main__":

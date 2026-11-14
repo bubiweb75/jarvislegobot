@@ -24,9 +24,16 @@ class Expression(str, Enum):
     LISTENING = "LISTENING"
     THINKING = "THINKING"
     SPEAKING = "SPEAKING"
+    SURPRISED = "SURPRISED"
+    SHY = "SHY"
+    LOVE = "LOVE"
+    WINK = "WINK"
+    CONFUSED = "CONFUSED"
+    MISCHIEVOUS = "MISCHIEVOUS"
+    SLEEPING = "SLEEPING"
 
 
-ALL_EXPRESSIONS = [
+CORE_EXPRESSIONS = [
     Expression.IDLE,
     Expression.HAPPY,
     Expression.CURIOUS,
@@ -34,6 +41,16 @@ ALL_EXPRESSIONS = [
     Expression.LISTENING,
     Expression.THINKING,
     Expression.SPEAKING,
+]
+
+ALL_EXPRESSIONS = CORE_EXPRESSIONS + [
+    Expression.SURPRISED,
+    Expression.SHY,
+    Expression.LOVE,
+    Expression.WINK,
+    Expression.CONFUSED,
+    Expression.MISCHIEVOUS,
+    Expression.SLEEPING,
 ]
 
 
@@ -222,6 +239,62 @@ class EyeEngine:
             self.left.target_corner_radius = self.right.target_corner_radius = 10.0
             self.left.target_lower_lid = self.right.target_lower_lid = 3.0
             self.left.target_lower_arch = self.right.target_lower_arch = 5.0
+        elif self.expr == Expression.SURPRISED:
+            self.left.target_width = self.right.target_width = 34.0
+            self.left.target_height = self.right.target_height = 40.0
+            self.left.target_corner_radius = self.right.target_corner_radius = 15.0
+            self.left.target_y = self.right.target_y = float(self.left.base_y - 3)
+        elif self.expr == Expression.SHY:
+            self.left.target_width = self.right.target_width = 25.0
+            self.left.target_height = self.right.target_height = 24.0
+            self.left.target_corner_radius = self.right.target_corner_radius = 10.0
+            self.left.target_upper_lid_l = self.left.target_upper_lid_r = 4.0
+            self.right.target_upper_lid_l = self.right.target_upper_lid_r = 4.0
+            self.left.target_x = float(self.left.base_x + 4)
+            self.right.target_x = float(self.right.base_x + 4)
+            self.left.target_y = self.right.target_y = float(self.left.base_y + 4)
+        elif self.expr == Expression.LOVE:
+            self.left.target_width = self.right.target_width = 30.0
+            self.left.target_height = self.right.target_height = 28.0
+            self.left.target_corner_radius = self.right.target_corner_radius = 10.0
+        elif self.expr == Expression.WINK:
+            self.left.target_width = 32.0
+            self.left.target_height = 32.0
+            self.left.target_corner_radius = 12.0
+            self.left.target_lower_lid = 4.0
+            self.left.target_lower_arch = 9.0
+            self.right.target_width = 32.0
+            self.right.target_height = 28.0
+            self.right.target_y = float(self.right.base_y + 2)
+        elif self.expr == Expression.CONFUSED:
+            self.left.target_width = 28.0
+            self.left.target_height = 24.0
+            self.left.target_corner_radius = 8.0
+            self.left.target_upper_lid_l = 7.0
+            self.left.target_upper_lid_r = 2.0
+            self.left.target_y = float(self.left.base_y + 2)
+            self.right.target_width = 32.0
+            self.right.target_height = 36.0
+            self.right.target_corner_radius = 12.0
+            self.right.target_upper_lid_l = 0.0
+            self.right.target_upper_lid_r = 5.0
+            self.right.target_y = float(self.right.base_y - 3)
+        elif self.expr == Expression.MISCHIEVOUS:
+            self.left.target_width = self.right.target_width = 32.0
+            self.left.target_height = self.right.target_height = 28.0
+            self.left.target_corner_radius = self.right.target_corner_radius = 10.0
+            self.left.target_upper_lid_l = 2.0
+            self.left.target_upper_lid_r = 10.0
+            self.right.target_upper_lid_l = 10.0
+            self.right.target_upper_lid_r = 2.0
+            self.left.target_lower_lid = self.right.target_lower_lid = 4.0
+            self.left.target_lower_arch = self.right.target_lower_arch = 7.0
+            self.left.target_x = float(self.left.base_x - 3)
+            self.right.target_x = float(self.right.base_x - 3)
+        elif self.expr == Expression.SLEEPING:
+            self.left.target_width = self.right.target_width = 30.0
+            self.left.target_height = self.right.target_height = 10.0
+            self.left.target_y = self.right.target_y = float(self.left.base_y + 4)
 
     def trigger_blink(self, now_ms: int) -> None:
         if self.blink_phase == "OPEN":
@@ -238,6 +311,12 @@ class EyeEngine:
         self.gaze_override_until_ms = now_ms + hold_ms
 
     def _update_blinker(self, now_ms: int, dt_sec: float) -> None:
+        if self.expr in (Expression.WINK, Expression.SLEEPING):
+            self.blink_phase = "OPEN"
+            self.left.blink_squeeze = 0.0
+            self.right.blink_squeeze = 0.0
+            return
+
         close_rate = 6.5 if self.expr == Expression.SLEEPY else 18.0
         open_rate = 4.5 if self.expr == Expression.SLEEPY else 14.0
 
@@ -274,7 +353,18 @@ class EyeEngine:
             return
         if now_ms < self.gaze_override_until_ms:
             return
-        if self.expr in (Expression.THINKING, Expression.LISTENING, Expression.CURIOUS):
+        if self.expr in (
+            Expression.THINKING,
+            Expression.LISTENING,
+            Expression.CURIOUS,
+            Expression.SURPRISED,
+            Expression.SHY,
+            Expression.LOVE,
+            Expression.WINK,
+            Expression.CONFUSED,
+            Expression.MISCHIEVOUS,
+            Expression.SLEEPING,
+        ):
             return
         if now_ms >= self.next_gaze_ms:
             return_center = self._rand_range(0, 99) < 35
@@ -324,6 +414,30 @@ class EyeEngine:
             self.left.target_height = self.right.target_height = 27.0 + 6.0 * env
             self.left.target_lower_lid = self.right.target_lower_lid = 2.0 + 3.5 * (1.0 - env)
             self.left.target_lower_arch = self.right.target_lower_arch = 4.0 + 2.5 * (1.0 - env)
+        elif self.expr == Expression.SURPRISED:
+            pulse = math.sin(t_sec * 5.0) * 1.0
+            self.left.target_width = self.right.target_width = 34.0 + pulse
+            self.left.target_height = self.right.target_height = 38.0 + pulse
+        elif self.expr == Expression.SHY:
+            sway = math.sin(t_sec * 1.6) * 1.5
+            self.left.target_x = float(self.left.base_x - 3) + sway
+            self.right.target_x = float(self.right.base_x - 3) + sway
+        elif self.expr == Expression.LOVE:
+            beat = abs(math.sin(t_sec * 3.8)) * 1.8
+            self.left.target_y = self.right.target_y = float(self.left.base_y - 1) - beat
+        elif self.expr == Expression.WINK:
+            self.left.target_y = float(self.left.base_y - 1) + math.sin(t_sec * 2.8) * 0.8
+        elif self.expr == Expression.CONFUSED:
+            tilt = math.sin(t_sec * 2.2) * 1.5
+            self.left.target_x = float(self.left.base_x + 2) + tilt
+            self.right.target_x = float(self.right.base_x + 2) + tilt
+        elif self.expr == Expression.MISCHIEVOUS:
+            sly = math.sin(t_sec * 2.1) * 2.0
+            self.left.target_x = float(self.left.base_x + 5) + sly
+            self.right.target_x = float(self.right.base_x + 5) + sly
+        elif self.expr == Expression.SLEEPING:
+            breathe = math.sin(t_sec * 0.9) * 1.0
+            self.left.target_y = self.right.target_y = float(self.left.base_y + 3) + breathe
 
     def _interpolate_eye(self, eye: EyeState, dt_sec: float) -> None:
         eye.x = _smooth_exp(eye.x, eye.target_x, 12.0, dt_sec)
@@ -393,8 +507,87 @@ class EyeEngine:
                     for py in range(y - 1, mask_bot + 1):
                         self.fb.set_pixel(x + col, py, 0)
 
+    def _draw_heart(self, cx: int, cy: int, scale: int = 2) -> None:
+        pattern = [
+            ".111...111.",
+            "11111.11111",
+            "11111111111",
+            "11111111111",
+            "11111111111",
+            ".111111111.",
+            "..1111111..",
+            "...11111...",
+            "....111....",
+            ".....1.....",
+        ]
+        ph = len(pattern) * scale
+        pw = len(pattern[0]) * scale
+        ox = _clamp_int(cx - pw // 2, 4, WIDTH - pw - 4)
+        oy = _clamp_int(cy - ph // 2, 4, HEIGHT - ph - 4)
+        for r_idx, row in enumerate(pattern):
+            for c_idx, ch in enumerate(row):
+                if ch == "1":
+                    for sy in range(scale):
+                        for sx in range(scale):
+                            self.fb.set_pixel(ox + c_idx * scale + sx, oy + r_idx * scale + sy, 1)
+
+    def _draw_glyph(self, ox: int, oy: int, pattern: list[str], scale: int = 1) -> None:
+        for r_idx, row in enumerate(pattern):
+            for c_idx, ch in enumerate(row):
+                if ch == "1":
+                    for sy in range(scale):
+                        for sx in range(scale):
+                            px = _clamp_int(ox + c_idx * scale + sx, 4, WIDTH - 5)
+                            py = _clamp_int(oy + r_idx * scale + sy, 4, HEIGHT - 5)
+                            self.fb.set_pixel(px, py, 1)
+
+    def _draw_wink_eye(self, eye: EyeState) -> None:
+        cx = _clamp_int(_round_half_away(eye.x), 20, WIDTH - 20)
+        cy = _clamp_int(_round_half_away(eye.y), 14, HEIGHT - 14)
+        w = 26
+        half = w // 2
+        for dx in range(-half, half + 1):
+            u = dx / float(half)
+            arch = _round_half_away(4.0 * (1.0 - u * u))
+            py = cy + 2 - arch
+            for thick in range(3):
+                self.fb.set_pixel(cx + dx, py + thick, 1)
+
+    def _draw_sleeping_eye(self, eye: EyeState) -> None:
+        cx = _clamp_int(_round_half_away(eye.x), 20, WIDTH - 20)
+        cy = _clamp_int(_round_half_away(eye.y), 14, HEIGHT - 14)
+        w = 28
+        half = w // 2
+        for dx in range(-half, half + 1):
+            u = dx / float(half)
+            sag = _round_half_away(3.5 * (1.0 - u * u))
+            py = cy + sag
+            for thick in range(4):
+                self.fb.set_pixel(cx + dx, py + thick, 1)
+
     def render_frame(self, now_ms: int) -> None:
         self.fb.clear()
+        if self.expr == Expression.LOVE:
+            beat = 1 if ((now_ms // 260) % 2 == 0) else 0
+            self._draw_heart(_round_half_away(self.left.x), _round_half_away(self.left.y) - beat, scale=2)
+            self._draw_heart(_round_half_away(self.right.x), _round_half_away(self.right.y) - beat, scale=2)
+            return
+
+        if self.expr == Expression.WINK:
+            self._draw_single_eye(self.left)
+            self._draw_wink_eye(self.right)
+            return
+
+        if self.expr == Expression.SLEEPING:
+            self._draw_sleeping_eye(self.left)
+            self._draw_sleeping_eye(self.right)
+            phase = (now_ms // 450) % 3
+            z_small = ["1111", "..1.", ".1..", "1111"]
+            z_big = ["11111", "...1.", "..1..", ".1...", "11111"]
+            self._draw_glyph(98, 16 - phase, z_small, scale=1)
+            self._draw_glyph(106, 9 - phase, z_big, scale=1)
+            return
+
         self._draw_single_eye(self.left)
         self._draw_single_eye(self.right)
 
@@ -409,6 +602,25 @@ class EyeEngine:
                     self.fb.fill_circle(dx, HEIGHT - 4, 2, 1)
                 else:
                     self.fb.draw_circle(dx, HEIGHT - 4, 1, 1)
+        elif self.expr == Expression.SHY:
+            for cx in (_round_half_away(self.left.x) - 10, _round_half_away(self.right.x) + 10):
+                for offset in (-4, 0, 4):
+                    self.fb.set_pixel(cx + offset, 52, 1)
+                    self.fb.set_pixel(cx + offset + 1, 51, 1)
+        elif self.expr == Expression.CONFUSED:
+            q_mark = [
+                ".111.",
+                "1...1",
+                "...1.",
+                "..1..",
+                "..1..",
+                ".....",
+                "..1..",
+            ]
+            self._draw_glyph(112, 6, q_mark, scale=1)
+        elif self.expr == Expression.SURPRISED:
+            bang = ["11", "11", "11", "11", "..", "11"]
+            self._draw_glyph(WIDTH // 2 - 1, 6, bang, scale=1)
 
 
 class SimulatorStateMachine:

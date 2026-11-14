@@ -114,7 +114,7 @@ class TestVoiceAndAI(unittest.TestCase):
         cmds = []
         transport.drain(cmds.append)
         self.assertIn("STATE:THINKING", cmds)
-        self.assertIn("STATE:CURIOUS", cmds)
+        self.assertIn("STATE:CONFUSED", cmds)
         self.assertEqual(ctrl.active_provider_id, "ollama")  # never switched to cloud
 
     def test_4_openai_missing_key_and_unconfirmed(self) -> None:
@@ -162,14 +162,14 @@ class TestVoiceAndAI(unittest.TestCase):
         time.sleep(0.15)
         cmds_stt = []
         tr_stt.drain(cmds_stt.append)
-        self.assertIn("STATE:CURIOUS", cmds_stt)
+        self.assertIn("STATE:CONFUSED", cmds_stt)
 
         ctrl_tts, tr_tts = self._make_controller(tts=MockTTSProvider(should_fail=True, delay_s=0.02))
         ctrl_tts.submit_text("Dimmi qualcosa")
         time.sleep(0.15)
         cmds_tts = []
         tr_tts.drain(cmds_tts.append)
-        self.assertIn("STATE:CURIOUS", cmds_tts)
+        self.assertIn("STATE:CONFUSED", cmds_tts)
 
     def test_9_oled_simulator_compatibility(self) -> None:
         eyes = EyeEngine(fps=50, spacing_px=16)
@@ -229,6 +229,29 @@ class TestVoiceAndAI(unittest.TestCase):
         shaped, dur = shape_piper_wav(buf.getvalue(), pitch_semitones=5.0, robot_mix=0.0, volume=90)
         self.assertGreater(len(shaped), 44)
         self.assertAlmostEqual(dur, 0.2, delta=0.05)
+
+    def test_13_emotion_engine_voice_integration(self) -> None:
+        from emotion_engine import EmotionConfig, EmotionEngine
+
+        eng = EmotionEngine(config=EmotionConfig(silent_mode=True), seed=2026)
+        cfg = JarvisConfig(ai_provider="demo")
+        transport = SimulatorQueueTransport()
+        bridge = EyeBridge(transport=transport)
+        ctrl = VoiceController(
+            config=cfg,
+            eye_bridge=bridge,
+            recorder=FakeRecorder(),
+            stt=MockSTTProvider("Sei bravissimo Jarvis!"),
+            tts=MockTTSProvider(delay_s=0.02),
+            emotion_engine=eng,
+        )
+        ctrl.submit_text("Sei bravissimo Jarvis!")
+        time.sleep(0.20)
+        cmds = []
+        transport.drain(cmds.append)
+        self.assertIn("STATE:THINKING", cmds)
+        self.assertIn("STATE:SPEAKING", cmds)
+        self.assertTrue("STATE:LOVE" in cmds or "STATE:SHY" in cmds)
 
 
 if __name__ == "__main__":

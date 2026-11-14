@@ -2,8 +2,18 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+import sys
 import threading
+import time
 from typing import Callable, Dict, Optional
+
+_SIM_DIR = Path(__file__).resolve().parent.parent / "04-Firmware" / "jarvis-desk-buddy-sim"
+if str(_SIM_DIR) not in sys.path:
+    sys.path.insert(0, str(_SIM_DIR))
+
+from emotion_engine import EmotionEngine, StimulusType, detect_text_stimulus  # noqa: E402
+from eye_engine import Expression  # noqa: E402
 
 from ai_providers import AIProvider, AIProviderError, DemoAIProvider, OllamaProvider, OpenAIProvider
 from audio_input import AudioInputError, WindowsMciAudioRecorder
@@ -44,6 +54,7 @@ class VoiceController:
         tts: Optional[TTSProvider] = None,
         providers: Optional[Dict[str, AIProvider]] = None,
         on_event: Optional[Callable[[VoiceEvent], None]] = None,
+        emotion_engine: Optional[EmotionEngine] = None,
     ) -> None:
         self.config = config
         self.eye_bridge = eye_bridge
@@ -51,6 +62,8 @@ class VoiceController:
         self.stt = stt or AutoLocalSTTProvider(whisper_model_size=config.whisper_model_size)
         self.tts = tts or PiperWithFallbackTTSProvider(config=config)
         self.on_event = on_event
+        self.emotion_engine = emotion_engine or EmotionEngine()
+        self._start_monotonic = time.monotonic()
 
         self.conversation = ConversationManager(
             system_prompt=config.system_prompt,
@@ -74,6 +87,9 @@ class VoiceController:
         self._lock = threading.Lock()
         self._cancel_gen = 0
         self._happy_timer: Optional[threading.Timer] = None
+
+    def _now_ms(self) -> int:
+        return int((time.monotonic() - self._start_monotonic) * 1000.0)
 
     @property
     def phase(self) -> VoicePhase:
@@ -136,6 +152,7 @@ class VoiceController:
             self._recover_with_curious(str(exc))
             return
 
+        self.emotion_engine.set_conversation_busy(True, self._now_ms(), Expression.LISTENING)
         self.eye_bridge.set_state("LISTENING")
         self._emit(VoiceEvent(phase=VoicePhase.LISTENING, status_text="In ascolto (rilascia o premi Ferma)..."))
 
@@ -146,6 +163,8 @@ class VoiceController:
             gen = self._cancel_gen
             self._phase = VoicePhase.THINKING
 
+        self.emotion_engine.set_conversation_busy(True, self._now_ms(), Expression.THINKING)
+        self.emotion_engine.set_conversation_busy(True, self._now_ms(), Expression.THINKING)
         self.eye_bridge.set_state("THINKING")
         self._emit(VoiceEvent(phase=VoicePhase.THINKING, status_text="Trascrizione ed elaborazione..."))
 
@@ -195,6 +214,7 @@ class VoiceController:
             gen = self._cancel_gen
             self._phase = VoicePhase.THINKING
 
+        self.emotion_engine.set_conversation_busy(True, self._now_ms(), Expression.THINKING)
         self.eye_bridge.set_state("THINKING")
         self._emit(
             VoiceEvent(
@@ -216,6 +236,7 @@ class VoiceController:
             self._phase = VoicePhase.IDLE
         self.recorder.cancel()
         self.tts.stop()
+        self.emotion_engine.set_conversation_busy(False, self._now_ms())
         self.eye_bridge.set_state("IDLE")
         self._emit(VoiceEvent(phase=VoicePhase.IDLE, status_text="Conversazione interrotta"))
 
@@ -224,6 +245,7 @@ class VoiceController:
             return gen != self._cancel_gen
 
     def _run_ai_and_speak(self, user_text: str, gen: int) -> None:
+        user_stimulus = detect_text_stimulus(user_text)
         provider = self.providers[self._active_provider_id]
         self.conversation.add_user_message(user_text)
         try:
@@ -247,6 +269,7 @@ class VoiceController:
                 return
             self._phase = VoicePhase.SPEAKING
 
+        self.emotion_engine.set_conversation_busy(True, self._now_ms(), Expression.SPEAKING)
         self.eye_bridge.set_state("SPEAKING")
         self._emit(
             VoiceEvent(
@@ -266,9 +289,21 @@ class VoiceController:
                 return
             with self._lock:
                 self._phase = VoicePhase.IDLE
-            if resp.sentiment == "happy":
+            now_ms = self._now_ms()
+            self.emotion_engine.set_conversation_busy(False, now_ms)
+
+            decision = None
+            if user_stimulus in (StimulusType.GREETING, StimulusType.COMPLIMENT, StimulusType.JOKE):
+                decision = self.emotion_engine.push_stimulus(user_stimulus, now_ms, source="voice_text")
+            elif resp.sentiment == "happy":
+                decision = self.emotion_engine.push_stimulus(StimulusType.REPLY_DONE, now_ms, source="ai_reply")
+
+            if decision is not None:
+                self.eye_bridge.set_state(decision.expression.value)
+                self._schedule_idle_after_happy(gen, delay_s=max(0.8, decision.duration_ms / 1000.0))
+            elif resp.sentiment == "happy":
                 self.eye_bridge.set_state("HAPPY")
-                self._schedule_idle_after_happy(gen)
+                self._schedule_idle_after_happy(gen, delay_s=1.6)
             else:
                 self.eye_bridge.set_state("IDLE")
             self._emit(
@@ -289,12 +324,12 @@ class VoiceController:
             on_audio_level=self.eye_bridge.on_audio_level,
         )
 
-    def _schedule_idle_after_happy(self, gen: int) -> None:
+    def _schedule_idle_after_happy(self, gen: int, delay_s: float = 1.6) -> None:
         def _back_to_idle() -> None:
             if not self._is_cancelled(gen) and self.phase == VoicePhase.IDLE:
                 self.eye_bridge.set_state("IDLE")
 
-        timer = threading.Timer(1.6, _back_to_idle)
+        timer = threading.Timer(delay_s, _back_to_idle)
         timer.daemon = True
         with self._lock:
             self._happy_timer = timer
@@ -308,7 +343,16 @@ class VoiceController:
     def _recover_with_curious(self, err_msg: str) -> None:
         with self._lock:
             self._phase = VoicePhase.ERROR
-        self.eye_bridge.set_state("CURIOUS")
+        now_ms = self._now_ms()
+        self.emotion_engine.set_conversation_busy(False, now_ms)
+        decision = self.emotion_engine.push_stimulus(
+            StimulusType.TEMP_ERROR,
+            now_ms,
+            source="error",
+            payload=err_msg,
+        )
+        err_expr = decision.expression.value if decision is not None else "CONFUSED"
+        self.eye_bridge.set_state(err_expr)
         self._emit(
             VoiceEvent(
                 phase=VoicePhase.ERROR,

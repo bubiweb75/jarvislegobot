@@ -18,6 +18,7 @@ MANUALS = [
     ("03_Costruzione_LEGO_Companion_v2.html", "03_Costruzione_LEGO_Companion_v2.pdf"),
     ("04_Software_e_Utilizzo_Windows.html", "04_Software_e_Utilizzo_Windows.pdf"),
     ("05_Collaudo_e_Manutenzione.html", "05_Collaudo_e_Manutenzione.pdf"),
+    ("06_Personalita_Emozioni_e_Reazioni.html", "06_Personalita_Emozioni_e_Reazioni.pdf"),
 ]
 
 

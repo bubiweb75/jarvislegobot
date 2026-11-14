@@ -50,6 +50,7 @@ class JarvisUnifiedApp:
             config=self.config,
             eye_bridge=self.eye_bridge,
             on_event=self._on_voice_event_bg,
+            emotion_engine=self.sim.emotion_engine,
         )
 
         self._build_voice_ui()

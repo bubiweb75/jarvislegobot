@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Manuale 6 — Personalità, Emozioni e Reazioni (FASE 7)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-badge">Manuale 6 di 6 · Personalità C</span>
+      <h1>JARVIS LEGO BOT<br/>Personalità, Emozioni e Reazioni</h1>
+      <p class="cover-sub">
+        Guida completa all'Emotion &amp; Reaction Engine (Personalità C — Molto espressivo),
+        alle 14 espressioni OLED 128×64, agli stimoli prioritari, ai comportamenti spontanei
+        e alla compatibilità tra PC Windows e futuro firmware ESP32-S3.
+      </p>
+      <div class="cover-card">
+        <h3>Stato attuale — FASE 7</h3>
+        <p>
+          Le 14 espressioni OLED e l'<strong>EmotionEngine</strong> sono <strong>operativi</strong>
+          nel simulatore Python (<code>04-Firmware/jarvis-desk-buddy-sim/</code>) e nell'app
+          vocale Windows (<code>05-Voice-AI/</code>). Le nuove 7 espressioni saranno sincronizzate
+          sul firmware ESP32-S3 dopo il collaudo hardware fisico.
+        </p>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <span>JARVIS AI Desk Buddy · FASE 7</span>
+      <span>Formato A4 · Italiano</span>
+    </div>
+  </section>
+
+  <div class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#sec-1">Personalità C: Molto espressivo</a></li>
+      <li><a href="#sec-2">Le 14 Espressioni OLED 128×64</a></li>
+      <li><a href="#sec-3">Stimoli, Priorità, Cooldown e Preemption</a></li>
+      <li><a href="#sec-4">Comportamenti Spontanei, Riposo e Risveglio</a></li>
+      <li><a href="#sec-5">Configurazione, Modalità Silenziosa e Simulatore</a></li>
+      <li><a href="#sec-6">Compatibilità PC vs Firmware ESP32-S3</a></li>
+    </ol>
+  </div>
+
+  <h2 id="sec-1">1. Personalità C: Molto espressivo</h2>
+  <p>
+    La Personalità C rende JARVIS un compagno da scrivania simpatico, giocherellone, tenero,
+    curioso e occasionalmente birichino, capace di riposare quando non viene usato e di
+    risvegliarsi con naturalezza, senza risultare mai invadente o rumoroso.
+  </p>
+  <p>
+    Il motore <code>EmotionEngine</code> (<code>04-Firmware/jarvis-desk-buddy-sim/emotion_engine.py</code>)
+    coordina in modo deterministico e non bloccante le reazioni visive ed eventuali brevi risposte
+    vocali, separando la logica emotiva dal rendering grafico <code>EyeEngine</code> e dal flusso
+    conversazionale <code>VoiceController</code>.
+  </p>
+
+  <h2 id="sec-2">2. Le 14 Espressioni OLED 128×64</h2>
+  <p>
+    Alle 7 espressioni storiche del progetto si aggiungono 7 nuove espressioni ottimizzate per
+    display monocromatico 128×64 con margini di sicurezza garantiti:
+  </p>
+
+  <div class="figure">
+    <img src="assets/jarvis_14_expressions_preview.png" alt="Anteprima reale delle 14 espressioni OLED 128x64" style="width:100%; border-radius:6px;" />
+    <p class="caption">
+      Riga 1: IDLE, HAPPY, CURIOUS, SLEEPY, LISTENING, THINKING, SPEAKING.
+      Riga 2: SURPRISED, SHY, LOVE, WINK, CONFUSED, MISCHIEVOUS, SLEEPING.
+    </p>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Espressione</th><th>Origine</th><th>Significato e Dettaglio Visivo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>IDLE</code></td><td>Core (7)</td><td>Sguardo rilassato con respiro lento, battito di ciglia e micro-sguardi</td></tr>
+      <tr><td><code>HAPPY</code></td><td>Core (7)</td><td>Occhi arcuati dal sorriso con leggero rimbalzo verticale</td></tr>
+      <tr><td><code>CURIOUS</code></td><td>Core (7)</td><td>Asimmetria tra i due occhi e leggero spostamento laterale</td></tr>
+      <tr><td><code>SLEEPY</code></td><td>Core (7)</td><td>Palpebre superiori abbassate e battito lento</td></tr>
+      <tr><td><code>LISTENING</code></td><td>Core (7)</td><td>Occhi ben aperti e indicatore pulsante centrale in basso</td></tr>
+      <tr><td><code>THINKING</code></td><td>Core (7)</td><td>Sguardo laterale con 3 puntini animati di elaborazione</td></tr>
+      <tr><td><code>SPEAKING</code></td><td>Core (7)</td><td>Apertura ritmica sincronizzata alla sintesi vocale Piper</td></tr>
+      <tr><td><code>SURPRISED</code></td><td>FASE 7</td><td>Occhi spalancati e simbolo <code>!</code> in alto al centro</td></tr>
+      <tr><td><code>SHY</code></td><td>FASE 7</td><td>Sguardo abbassato con lieve dondolio e tratteggi di rossore</td></tr>
+      <tr><td><code>LOVE</code></td><td>FASE 7</td><td>Due cuori pixel-art pulsanti al posto delle pupille</td></tr>
+      <tr><td><code>WINK</code></td><td>FASE 7</td><td>Occhio sinistro aperto e occhio destro chiuso in occhiolino ad arco</td></tr>
+      <tr><td><code>CONFUSED</code></td><td>FASE 7</td><td>Palpebre asimmetriche e piccolo punto interrogativo <code>?</code></td></tr>
+      <tr><td><code>MISCHIEVOUS</code></td><td>FASE 7</td><td>Palpebre inclinate da sguardo furbetto e sorriso sornione</td></tr>
+      <tr><td><code>SLEEPING</code></td><td>FASE 7</td><td>Occhi chiusi rilassati con piccole <code>zZ</code> fluttuanti</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-3">3. Stimoli, Priorità, Cooldown e Preemption</h2>
+  <p>
+    Ogni stimolo genera un <code>StimulusEvent</code> con priorità dedicata e cooldown individuale
+    per evitare ripetizioni eccessive. Le reazioni non si sovrappongono: uno stimolo più urgente
+    interrompe (<em>preempt</em>) una reazione meno prioritaria, mentre al termine della durata
+    JARVIS torna automaticamente allo stato precedente.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Stimolo</th><th>Priorità</th><th>Cooldown</th><th>Reazione Principale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>TEMP_ERROR</code></td><td>95</td><td>2,5 s</td><td><code>CONFUSED</code> (errore STT, TTS o AI locale)</td></tr>
+      <tr><td><code>WAKE_UP</code></td><td>90</td><td>1,5 s</td><td><code>HAPPY</code> + blink (risveglio da riposo)</td></tr>
+      <tr><td><code>SUDDEN_NOISE</code></td><td>85</td><td>6,0 s</td><td><code>SURPRISED</code> (sobbalzo simulato)</td></tr>
+      <tr><td><code>BUTTON_PRESS</code></td><td>80</td><td>0,7 s</td><td>Ciclo giocoso <code>HAPPY</code> / <code>WINK</code> / <code>CURIOUS</code> / <code>MISCHIEVOUS</code></td></tr>
+      <tr><td><code>COMPLIMENT</code></td><td>70</td><td>4,0 s</td><td><code>LOVE</code> o <code>SHY</code></td></tr>
+      <tr><td><code>JOKE</code></td><td>68</td><td>4,0 s</td><td><code>MISCHIEVOUS</code>, <code>WINK</code> o <code>HAPPY</code></td></tr>
+      <tr><td><code>GREETING</code></td><td>65</td><td>5,0 s</td><td><code>HAPPY</code> o <code>WINK</code></td></tr>
+      <tr><td><code>REPLY_DONE</code></td><td>55</td><td>1,2 s</td><td><code>HAPPY</code> o <code>WINK</code> al termine risposta</td></tr>
+      <tr><td><code>QUESTION</code></td><td>45</td><td>1,8 s</td><td><code>CURIOUS</code></td></tr>
+      <tr><td><code>HARD_ANSWER</code></td><td>40</td><td>2,5 s</td><td><code>THINKING</code></td></tr>
+      <tr><td><code>INACTIVITY</code></td><td>20</td><td>10,0 s</td><td><code>SLEEPY</code> → <code>SLEEPING</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="sec-4">4. Comportamenti Spontanei, Riposo e Risveglio</h2>
+  <ul>
+    <li><strong>Durante <code>IDLE</code>:</strong> a intervalli naturali (default 7,5 s), JARVIS esegue sguardi laterali con blink, brevi espressioni <code>CURIOUS</code>, rari <code>WINK</code> o occhiate <code>MISCHIEVOUS</code>.</li>
+    <li><strong>Durante conversazione attiva:</strong> in <code>LISTENING</code>, <code>THINKING</code> e <code>SPEAKING</code> i comportamenti spontanei vengono sospesi per non interferire con l'utente.</li>
+    <li><strong>Inattività progressiva:</strong> dopo 35 s senza attività passa a <code>SLEEPY</code>; dopo 75 s entra in <code>SLEEPING</code>. Qualsiasi stimolo o interazione lo risveglia in <code>IDLE</code>.</li>
+  </ul>
+
+  <h2 id="sec-5">5. Configurazione, Modalità Silenziosa e Simulatore</h2>
+  <p>
+    Nel Simulatore OLED (<code>simulator_gui.py</code>) e nell'app unificata (<code>jarvis_app.py</code>)
+    è presente il pannello <strong>Emotion &amp; Reaction Engine — Personalità C</strong> con:
+  </p>
+  <ul>
+    <li>8 pulsanti di test immediato (<em>Saluto</em>, <em>Complimento</em>, <em>Rumore</em>, <em>Pulsante</em>, <em>Battuta</em>, <em>Inattività</em>, <em>Risveglio</em>, <em>Errore</em>).</li>
+    <li>Toggle <strong>Comportamenti spontanei</strong> e <strong>Modalità silenziosa</strong> (disattiva le brevi frasi vocali automatiche mantenendo tutte le animazioni OLED).</li>
+    <li>Pulsante <strong>Ripristina Default</strong> e barra telemetrica in tempo reale (evento, emozione, priorità, durata residua, cooldown).</li>
+  </ul>
+
+  <h2 id="sec-6">6. Compatibilità PC vs Firmware ESP32-S3</h2>
+  <p>
+    Le 7 espressioni storiche (<code>IDLE</code>, <code>HAPPY</code>, <code>CURIOUS</code>,
+    <code>SLEEPY</code>, <code>LISTENING</code>, <code>THINKING</code>, <code>SPEAKING</code>)
+    sono già supportate sia sul simulatore PC sia sul firmware ESP32-S3. Le 7 nuove espressioni
+    di FASE 7 sono attualmente implementate su PC/Simulatore e documentate in
+    <code>06-Hardware-Integration/USB_PROTOCOL.md</code> per il futuro allineamento firmware
+    dopo la verifica PlatformIO e l'arrivo dei componenti fisici.
+  </p>
+</body>
+</html>

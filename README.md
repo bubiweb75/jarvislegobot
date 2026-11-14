@@ -6,13 +6,14 @@ Assistente vocale da scrivania in italiano costruito con mattoncini LEGO, basato
 
 ## Manuali PDF Illustrati (`docs/manuals/`)
 
-Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici, apri direttamente i **5 manuali A4 in PDF**:
+Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici, apri direttamente i **6 manuali A4 in PDF**:
 
 1. [Manuale 1 — Presentazione Generale JARVIS](docs/manuals/01_Presentazione_Generale_JARVIS.pdf)
 2. [Manuale 2 — Elettronica e Collegamenti](docs/manuals/02_Elettronica_e_Collegamenti.pdf)
 3. [Manuale 3 — Costruzione LEGO Companion v2](docs/manuals/03_Costruzione_LEGO_Companion_v2.pdf)
 4. [Manuale 4 — Software e Utilizzo Windows](docs/manuals/04_Software_e_Utilizzo_Windows.pdf)
 5. [Manuale 5 — Collaudo e Manutenzione](docs/manuals/05_Collaudo_e_Manutenzione.pdf)
+6. [Manuale 6 — Personalità, Emozioni e Reazioni (FASE 7)](docs/manuals/06_Personalita_Emozioni_e_Reazioni.pdf)
 
 *(Sorgenti HTML/SVG e script ripetibile `build_manuals.py` in `docs/manual-sources/`).*
 
@@ -28,7 +29,8 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 | **FASE 4** | Firmware `jarvis-desk-buddy` (occhi OLED 7 espressioni) + Simulatore Windows | ✅ Compilabile e testato su simulatore |
 | **FASE 5** | Voice & AI su PC Windows 11 (`faster-whisper` + `Ollama qwen2.5:3b` + `Piper Riccardo Amichetto Vivace`) | ✅ Operativo su PC Windows 11 |
 | **FASE 6** | Preparazione elettronica ESP32-S3, architettura audio USB e piano collaudo | ✅ Documentazione pronta (`06-Hardware-Integration/`), in attesa componenti |
-| **FASE 7** | Collaudo hardware reale, integrazione USB e montaggio finale LEGO | ⏳ Da iniziare all'arrivo dei componenti |
+| **FASE 7** | Emotion &amp; Reaction Engine (Personalità C, 14 espressioni OLED, integrato su PC/Simulatore) | ✅ Implementato e testato su PC/Simulatore (sync ESP32-S3 all'arrivo hardware) |
+| **FASE 8** | Collaudo hardware reale, integrazione USB e montaggio finale LEGO | ⏳ Da iniziare all'arrivo dei componenti |
 
 ---
 
