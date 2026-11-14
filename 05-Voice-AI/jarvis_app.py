@@ -15,7 +15,9 @@ from simulator_gui import JarvisSimulatorApp  # noqa: E402
 
 from audio_input import list_microphones  # noqa: E402
 from config import load_config  # noqa: E402
+from conversation_engine import ConversationEngine2  # noqa: E402
 from eye_bridge import EyeBridge, SimulatorQueueTransport  # noqa: E402
+from memory_engine import MemoryEngine  # noqa: E402
 from voice_controller import VoiceController, VoiceEvent, VoicePhase  # noqa: E402
 
 
@@ -52,6 +54,14 @@ class JarvisUnifiedApp:
             on_event=self._on_voice_event_bg,
             emotion_engine=self.sim.emotion_engine,
         )
+        self.memory_engine = MemoryEngine()
+        self.conv_engine = ConversationEngine2(
+            voice_controller=self.controller,
+            memory_engine=self.memory_engine,
+            behavior_engine=self.sim.behavior_engine,
+        )
+        self.conv_engine.start_session()
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
 
         self._build_voice_ui()
         self._refresh_hardware_status()
@@ -212,6 +222,49 @@ class JarvisUnifiedApp:
         self.reply_box.pack(fill="both", expand=True, pady=(2, 0))
         self.reply_box.insert("1.0", "Modalità Demo pronta. Scrivi una domanda o premi Parla.")
         self.reply_box.configure(state="disabled")
+
+        # FASE 9.3 compact memory & mode bar (non-blocking)
+        ctrl_bar = tk.Frame(tab_chat, bg="#0F172A", pady=4)
+        ctrl_bar.pack(fill="x", pady=(6, 0))
+
+        self.persistent_mem_var = tk.BooleanVar(value=self.memory_engine.config.persistent_enabled)
+        tk.Checkbutton(
+            ctrl_bar,
+            text="Memoria Persistente",
+            variable=self.persistent_mem_var,
+            command=self._on_toggle_persistent_memory,
+            bg="#0F172A",
+            fg="#CBD5E1",
+            selectcolor="#1E293B",
+            activebackground="#0F172A",
+            activeforeground="#F8FAFC",
+            font=("Segoe UI", 8),
+        ).pack(side="left")
+
+        self.quiet_mode_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            ctrl_bar,
+            text="Quiet Mode",
+            variable=self.quiet_mode_var,
+            command=self._on_toggle_quiet_mode,
+            bg="#0F172A",
+            fg="#CBD5E1",
+            selectcolor="#1E293B",
+            activebackground="#0F172A",
+            activeforeground="#F8FAFC",
+            font=("Segoe UI", 8),
+        ).pack(side="left", padx=(8, 0))
+
+        prop_row = tk.Frame(tab_chat, bg="#0F172A", pady=2)
+        prop_row.pack(fill="x", pady=(2, 0))
+        self.memory_entry = tk.Entry(prop_row, bg="#1E293B", fg="#F8FAFC", insertbackground="#F8FAFC", relief="flat", font=("Segoe UI", 8))
+        self.memory_entry.pack(side="left", fill="x", expand=True, ipady=3)
+        tk.Button(prop_row, text="Proponi", command=self._on_propose_memory, bg="#334155", fg="#F8FAFC", relief="flat", padx=6, font=("Segoe UI", 8)).pack(side="left", padx=(4, 0))
+        tk.Button(prop_row, text="Conferma", command=self._on_confirm_memory, bg="#059669", fg="#FFFFFF", relief="flat", padx=6, font=("Segoe UI", 8)).pack(side="left", padx=(4, 0))
+        tk.Button(prop_row, text="Rifiuta", command=self._on_reject_memory, bg="#DC2626", fg="#FFFFFF", relief="flat", padx=6, font=("Segoe UI", 8)).pack(side="left", padx=(4, 0))
+
+        self.proposal_status_var = tk.StringVar(value="Nessuna proposta in attesa.")
+        tk.Label(tab_chat, textvariable=self.proposal_status_var, bg="#0F172A", fg="#94A3B8", anchor="w", font=("Segoe UI", 8)).pack(fill="x")
 
         # --- TAB 2: IMPOSTAZIONI & AUDIO ---
         tk.Label(tab_cfg, text="Provider AI:", fg="#CBD5E1", bg="#0F172A", font=("Segoe UI", 9, "bold")).pack(anchor="w")
@@ -388,25 +441,78 @@ class JarvisUnifiedApp:
 
     def _on_toggle_talk(self) -> None:
         if self.controller.phase == VoicePhase.LISTENING:
-            self.controller.stop_push_to_talk_and_process()
+            self.conv_engine.stop_listening_and_process()
         else:
             self.controller.select_provider(self.provider_var.get(), self.model_var.get())
-            self.controller.start_push_to_talk()
+            self.conv_engine.start_listening()
 
     def _on_send_text(self) -> None:
         text = self.text_entry.get().strip()
         if not text:
             return
         self.controller.select_provider(self.provider_var.get(), self.model_var.get())
-        self.controller.submit_text(text)
+        self.conv_engine.submit_text(text)
 
     def _on_interrupt(self) -> None:
-        self.controller.interrupt()
+        self.conv_engine.interrupt()
 
     def _on_new_chat(self) -> None:
+        self.conv_engine.interrupt()
         self.controller.reset_conversation()
+        self.conv_engine.start_session()
         self.transcript_var.set("-")
         self._set_reply_text("Nuova conversazione avviata.")
+
+    def _on_toggle_persistent_memory(self) -> None:
+        enabled = bool(self.persistent_mem_var.get())
+        self.conv_engine.set_persistent_memory_enabled(enabled)
+
+    def _on_toggle_quiet_mode(self) -> None:
+        enabled = bool(self.quiet_mode_var.get())
+        self.conv_engine.set_quiet_mode(enabled)
+
+    def _on_propose_memory(self) -> None:
+        text = self.memory_entry.get().strip()
+        if not text:
+            return
+        prop = self.conv_engine.propose_fact(text)
+        if prop is not None:
+            self.memory_entry.delete(0, "end")
+        self._refresh_proposal_label()
+
+    def _on_confirm_memory(self) -> None:
+        pending = self.conv_engine.list_pending_proposals()
+        if pending:
+            self.conv_engine.confirm_memory(pending[-1].proposal_id)
+        self._refresh_proposal_label()
+
+    def _on_reject_memory(self) -> None:
+        pending = self.conv_engine.list_pending_proposals()
+        if pending:
+            self.conv_engine.reject_memory(pending[-1].proposal_id)
+        self._refresh_proposal_label()
+
+    def _refresh_proposal_label(self) -> None:
+        pending = self.conv_engine.list_pending_proposals()
+        if not pending:
+            self.proposal_status_var.set("Nessuna proposta in attesa.")
+        else:
+            last = pending[-1]
+            self.proposal_status_var.set(f"In attesa ({len(pending)}): {last.content[:60]}")
+
+    def close(self) -> None:
+        try:
+            self.conv_engine.end_session()
+        except Exception:
+            pass
+        try:
+            self.memory_engine.close_db()
+        except Exception:
+            pass
+        try:
+            self.root.destroy()
+        except Exception:
+            pass
 
     def _set_reply_text(self, text: str) -> None:
         self.reply_box.configure(state="normal")
@@ -453,7 +559,7 @@ def main() -> None:
     root = tk.Tk()
     app = JarvisUnifiedApp(root)
     if args.smoke_ms > 0:
-        root.after(args.smoke_ms, root.destroy)
+        root.after(args.smoke_ms, app.close)
     root.mainloop()
 
 

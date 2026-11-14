@@ -87,6 +87,10 @@ class VoiceController:
         self._lock = threading.Lock()
         self._cancel_gen = 0
         self._happy_timer: Optional[threading.Timer] = None
+        # Optional FASE 9.3 ConversationEngine2 hooks
+        self.system_context_provider: Optional[Callable[[str], str]] = None
+        self.on_phase_change: Optional[Callable[[VoicePhase], None]] = None
+        self.custom_speak_fn: Optional[Callable[..., None]] = None
 
     def _now_ms(self) -> int:
         return int((time.monotonic() - self._start_monotonic) * 1000.0)
@@ -249,7 +253,15 @@ class VoiceController:
         provider = self.providers[self._active_provider_id]
         self.conversation.add_user_message(user_text)
         try:
-            resp = provider.generate(self.conversation.get_messages_for_model(), model=self._active_model)
+            messages = self.conversation.get_messages_for_model()
+            if self.system_context_provider is not None:
+                mem_ctx = self.system_context_provider(user_text)
+                if mem_ctx:
+                    if messages and messages[0].get("role") == "system":
+                        messages = [messages[0], {"role": "system", "content": mem_ctx}] + messages[1:]
+                    else:
+                        messages = [{"role": "system", "content": mem_ctx}] + messages
+            resp = provider.generate(messages, model=self._active_model)
         except AIProviderError as exc:
             if not self._is_cancelled(gen):
                 self._recover_with_curious(str(exc))
@@ -315,7 +327,8 @@ class VoiceController:
                 )
             )
 
-        self.tts.speak(
+        speak_callable = self.custom_speak_fn if self.custom_speak_fn is not None else self.tts.speak
+        speak_callable(
             resp.text,
             voice=self.config.tts_voice,
             rate=self.config.tts_rate,
@@ -376,5 +389,10 @@ class VoiceController:
         timer.start()
 
     def _emit(self, event: VoiceEvent) -> None:
+        if self.on_phase_change is not None:
+            try:
+                self.on_phase_change(event.phase)
+            except Exception:
+                pass
         if self.on_event is not None:
             self.on_event(event)

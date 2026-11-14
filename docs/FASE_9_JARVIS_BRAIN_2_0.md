@@ -195,3 +195,25 @@ Invece di creare una seconda applicazione, si evolve `05-Voice-AI/jarvis_app.py`
   mem.confirm_proposal(prop.proposal_id)  # salvato solo dopo conferma
   ```
 - **Stato integrazione e preparazione FASE 9.3:** nessuna estrazione automatica tramite LLM e **nessun** collegamento attivo a `VoiceController` / `Ollama` in questa fase. Nella **FASE 9.3**, `Conversation Engine 2.0` leggerà `mem.get_integration_context()` e passerà `format_as_untrusted_data(...)` al prompt controllato.
+
+---
+
+## 13. Stato Implementazione FASE 9.3 — Conversation Engine 2.0
+
+- **Moduli creati / aggiornati:**
+  - `05-Voice-AI/conversation_engine.py` (`ConversationEngine2`, `SentenceSpeechQueue`, `split_sentences`): coordinatore centrale tra `VoiceController` (FASE 5), `MemoryEngine` (FASE 9.2) e `BehaviorEngine` (FASE 9.1), senza duplicare la pipeline STT/LLM/TTS esistente.
+  - `05-Voice-AI/voice_controller.py`: aggiunti hook retrocompatibili opzionali (`system_context_provider`, `on_phase_change`, `custom_speak_fn`).
+  - `05-Voice-AI/jarvis_app.py`: istanziazione di `MemoryEngine` + `ConversationEngine2` (riutilizzando `self.sim.behavior_engine`), routing non bloccante di ascolto/invio/interruzione/nuova chat, barra compatta per `Memoria Persistente` ON/OFF, `Quiet Mode` ON/OFF e flusso esplicito `Proponi` / `Conferma` / `Rifiuta` per i ricordi, chiusura pulita del DB.
+  - `05-Voice-AI/tests/test_conversation_engine.py`: 10 test automatici su memoria abilitata/disabilitata, consenso/rifiuto, difesa da prompt injection e separazione L2/L3, sincronizzazione `RobotMode`, riproduzione ordinata frase-per-frase e cancellazione in `THINKING`/`SPEAKING`, errori STT/AI/TTS, `Quiet Mode` a risposta in corso, `end_session()` e limiti `2/ora` / `20 min`.
+- **Distinzione tra funzioni operative, verificate con mock e predisposte:**
+  - **Funzioni realmente operative:** orchestrazione `ConversationEngine2`, gestione consenso/rifiuto L3/L4, separazione L1 RAM vs L2/L3/L4 SQLite, disattivazione memoria persistente, limitazione contesto (`MAX_MEMORY_CONTEXT_CHARS = 800`), sincronizzazione stati `RobotMode`, controlli UI non bloccanti e smoke test `jarvis_app.py`.
+  - **Funzioni verificate soltanto tramite mock:** flusso completo STT (`MockSTTProvider` / `FailingSTT`), generazione AI (`CapturingAIProvider` / `SlowMockProvider`), riproduzione frase per frase e interruzione (`OrderedTrackingTTS` / `MockTTSProvider`), in assenza di verifica end-to-end con microfono fisico, `Ollama` o `Piper` nei test automatici.
+  - **Funzioni predisposte:** `try_spontaneous_voice()` è implementato e verificato con mock (`2/ora`, `20 min`, blocco su `Quiet Mode` e conversazione attiva), ma non è ancora agganciato a un timer autonomo di background nell'UI (previsto nella **FASE 9.4**).
+- **Limitazioni di interruzione audio e streaming TTS:**
+  - `PiperWithFallbackTTSProvider` esegue `piper.exe` su stringhe complete producendo WAV elaborati con `voice_dsp.py` (*Amichetto Vivace* + *Piper Riccardo*). `SentenceSpeechQueue` realizza quindi una **riproduzione sequenziale frase per frase** (`split_sentences`), **non** uno streaming audio token-per-token dal modello LLM.
+  - L'annullamento delle frasi ancora in coda è garantito tramite controllo di generazione (`_gen`), mentre l'interruzione dell'audio già avviato dipende dal provider sottostante (`winsound.PlaySound(None, SND_PURGE)` e terminazione del processo `piper.exe` / fallback PowerShell SAPI, soggetti a latenza del buffer audio OS): **non** va quindi considerata un'interruzione hardware istantanea al campione.
+- **Limiti della sicurezza dei prompt:**
+  - I ricordi recuperati passano da `format_as_untrusted_data(...)` come dati fattuali passivi (*mai come istruzioni eseguibili*) e nessuna istruzione nei ricordi viene eseguita dal codice applicativo.
+  - **Limitazione dichiarata:** il modello LLM potrebbe comunque interpretare impropriamente contenuti ostili o istruzioni camuffate nei ricordi; la sola delimitazione testuale riduce il rischio ma **non garantisce un isolamento assoluto**.
+- **Cosa resta per la FASE 9.4 (Control Center):**
+  - Interfaccia completa a schede (`Conversazione`, `Personalità e Comportamento`, `Memoria`, `Sensori e Stato`, `Diagnostica`), gestione avanzata/modifica/cancellazione selettiva dei ricordi da UI, trigger periodico controllato per `try_spontaneous_voice()`, selettore microfono/dispositivi e pannello unificato di controllo.
