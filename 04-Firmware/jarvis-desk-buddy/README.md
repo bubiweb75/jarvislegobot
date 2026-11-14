@@ -57,25 +57,60 @@ pio device monitor -b 115200
 
 ---
 
-## 4. Procedura di Test (Software vs Hardware)
+## 4. Espressioni OLED, Protocollo Seriale e Preparazione Sensori (FASE 8.2A)
 
-### A. Verifiche Software Completate in Sviluppo
-- Compilazione pulita PlatformIO per **entrambi** gli ambienti (`esp32s3_sh1106` e `esp32s3_ssd1306`) con `-Wall -Wextra`.
-- Architettura 100% non bloccante (`0` chiamate `delay()` nel `loop()`).
-- Verifica pinout ESP32-S3 N16R8 (`GPIO 41/42/47` liberi e compatibili con Octal PSRAM).
+### A. Le 14 Espressioni OLED Supportate
+Il firmware è allineato alle **14 espressioni** del simulatore Python (`eye_engine.py`):
+- **Base / Operative (7):** `IDLE` (alias `NEUTRAL`), `HAPPY`, `CURIOUS`, `SLEEPY`, `LISTENING`, `THINKING`, `SPEAKING`
+- **Espressive / Emotive (7):** `SURPRISED`, `SHY`, `LOVE`, `WINK`, `CONFUSED`, `MISCHIEVOUS`, `SLEEPING`
 
-### B. Procedura di Collaudo Fisico (Da Eseguire Quando Arrivano i Componenti)
-1. **Test Rilevamento I²C:** collega OLED (`3V3`, `GND`, `SDA=41`, `SCL=42`) e apri il Monitor Seriale (`115200` baud). Verifica la stampa `I2C OLED detected at 0x3C` (o `0x3D`).
-2. **Test Centratura Driver:** verifica che con `esp32s3_sh1106` i due occhi bianchi siano perfettamente centrati senza bande di rumore ai bordi (altrimenti passa a `esp32s3_ssd1306`).
-3. **Test Demo Automatica:** all'avvio il firmware cicla ogni `5` secondi tra le espressioni `NEUTRAL`, `HAPPY`, `CURIOUS`, `LISTENING`, `THINKING`, `SPEAKING`, `SLEEPY`, con battito palpebre e movimenti organici dello sguardo.
-4. **Test Pulsante (`GPIO 47`):**
-   - **Pressione breve:** passa alla modalità manuale e cicla l'espressione successiva.
+### B. Protocollo Seriale USB-CDC (`115200` baud, `\n`)
+Comandi supportati:
+- `PING` → `PONG`
+- `STATUS` → `OK:STATE=...;AUTO=...;DRIVER=...`
+- `DIAG` → `OK:DIAG;STATE=...;UPTIME_MS=...;FREE_HEAP=...;FREE_PSRAM=...;OLED_ADDR=0x...;DRIVER=...;SENSORS=STUB_ONLY`
+- `HELP` → elenco comandi disponibili
+- `STATE:<ESPRESSIONE>` → imposta una delle 14 espressioni (es. `STATE:LOVE`, `STATE:MISCHIEVOUS`, `STATE:IDLE`)
+- `BLINK` → forza un battito di palpebre immediato
+- `LOOK:<dx>,<dy>` → sposta lo sguardo per `2` secondi (`dx` in `-11..11`, `dy` in `-6..6`; fuori range restituisce `ERR:LOOK_RANGE (dx:-11..11,dy:-6..6)`)
+- `AUTO:ON` / `AUTO:OFF` → attiva/disattiva la Demo Automatica
+
+### C. Preparazione Architettura Sensori (FASE 8.2B — Solo Stub)
+In `include/pinout_config.h` e `include/sensor_stub.h` sono predisposte le risorse per i sensori futuri senza driver attivi né letture simulate:
+- `TTP223` (Touch capacitivo): `GPIO 8`
+- `VL53L0X` (ToF prossimità, I²C `0x29`): `XSHUT` su `GPIO 9`
+- `MPU6050` (IMU 6 assi, I²C `0x68`): `INT` su `GPIO 10`
+- `BH1750` (Luce ambientale, I²C `0x23`): condiviso su I²C0 (`SDA=41`, `SCL=42`)
+
+---
+
+## 5. Compilazione PlatformIO su Windows e Primo Collaudo Fisico
+
+### A. Comandi di Compilazione e Upload (Windows / PowerShell)
+Dalla cartella `04-Firmware/jarvis-desk-buddy`:
+```powershell
+# Compilazione ambiente predefinito (SH1106 1.3")
+pio run -e esp32s3_sh1106
+
+# Compilazione ambiente alternativo (SSD1306 0.96")
+pio run -e esp32s3_ssd1306
+
+# Upload su ESP32-S3 e apertura Monitor Seriale
+pio run -e esp32s3_sh1106 -t upload -t monitor --monitor-baud 115200
+```
+
+### B. Procedura di Collaudo Fisico (ESP32-S3 + OLED)
+1. **Collegamento Hardware:** collega il display OLED a `3V3`, `GND`, `SDA=GPIO 41`, `SCL=GPIO 42` e il pulsante opzionale tra `GPIO 47` e `GND`.
+2. **Test Rilevamento I²C:** apri il Monitor Seriale a `115200` baud e verifica il rilevamento all'indirizzo `0x3C` (o `0x3D`).
+3. **Test Centratura Driver:** con `esp32s3_sh1106` i due occhi bianchi devono risultare centrati senza bande laterali di rumore (in caso di shift di 2px o rumore ai bordi, compila con `-e esp32s3_ssd1306`).
+4. **Test Demo Automatica e Pulsante (`GPIO 47`):**
+   - **Avvio:** cicla automaticamente tra le espressioni con blink e micro-movimenti dello sguardo.
+   - **Pressione breve:** passa in modalità manuale e cicla l'espressione successiva.
    - **Pressione lunga (`>= 1,5 s`):** attiva/disattiva la Demo Automatica (`EVENT:AUTO_DEMO=ON/OFF`).
-5. **Test Protocollo Seriale / Raspberry Pi (`115200` baud, terminazione `\n`):**
-   Invia da Serial Monitor (o futuro script Python su Raspberry Pi) i seguenti comandi e verifica la risposta:
-   - `PING` → `PONG`
-   - `STATUS` → `OK:STATE=...;AUTO=...;DRIVER=...`
-   - `STATE:HAPPY`, `STATE:CURIOUS`, `STATE:SLEEPY`, `STATE:LISTENING`, `STATE:THINKING`, `STATE:SPEAKING`, `STATE:NEUTRAL`
-   - `BLINK` → forza un battito di palpebre immediato
-   - `LOOK:10,-5` → sposta lo sguardo per `2` secondi
-   - `AUTO:ON` / `AUTO:OFF` → riattiva/disattiva il ciclo automatico
+5. **Test Protocollo Seriale:** invia `PING`, `DIAG`, `STATUS`, `STATE:LOVE`, `STATE:CONFUSED`, `LOOK:5,-3`, `LOOK:99,0` (verifica `ERR:LOOK_RANGE`) e `BLINK`.
+
+### C. Troubleshooting Rapido
+- **Porta COM non visibile su Windows:** collega il cavo alla porta USB-CDC nativa (`USB` / `OTG`, non solo `UART` se presente) oppure premi `BOOT` + `RST` per entrare in bootloader.
+- **OLED non rilevato (`OLED_ADDR=0x00` in `DIAG`):** controlla alimentazione `3V3` (non `5V` se il modulo non ha regolatore), inversione `SDA`/`SCL` (`GPIO 41`/`42`) e indirizzo I²C (`0x3C` vs `0x3D`).
+- **Immagine spostata di 2 pixel o banda verticale disturbata:** il pannello monta controller SSD1306 invece di SH1106 (o viceversa); cambia ambiente PlatformIO tra `esp32s3_sh1106` e `esp32s3_ssd1306`.
+- **Nessuna risposta ai comandi seriali:** verifica `115200` baud e terminatore di riga `\n` (`Newline` o `Both NL & CR`).

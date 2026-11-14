@@ -20,9 +20,11 @@ public:
 
     void SetExpression(eyes::Expression expr, bool disable_auto_demo = true);
     bool IsAutoDemoEnabled() const { return auto_demo_enabled_; }
+    void SetOledDetectedAddr(uint8_t addr) { oled_addr_ = addr; }
 
 private:
     eyes::EyeEngine* eyes_ = nullptr;
+    uint8_t oled_addr_ = 0;
 
     // Auto-demo cycling state
     bool auto_demo_enabled_ = true;
@@ -49,6 +51,7 @@ private:
     void HandleCommand(const char* cmd, uint32_t now_ms);
     void CycleNextExpression();
     void PrintStatus() const;
+    void PrintDiagnostics(uint32_t now_ms) const;
 };
 
 }  // namespace jarvis::state

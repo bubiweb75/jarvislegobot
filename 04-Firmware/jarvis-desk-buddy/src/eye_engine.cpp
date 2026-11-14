@@ -45,14 +45,21 @@ float SmoothExp(float current, float target, float rate, float dt_sec) {
 
 const char* ExpressionToString(Expression expr) {
     switch (expr) {
-        case Expression::kNeutral:   return "NEUTRAL";
-        case Expression::kHappy:     return "HAPPY";
-        case Expression::kCurious:   return "CURIOUS";
-        case Expression::kSleepy:    return "SLEEPY";
-        case Expression::kListening: return "LISTENING";
-        case Expression::kThinking:  return "THINKING";
-        case Expression::kSpeaking:  return "SPEAKING";
-        default:                     return "UNKNOWN";
+        case Expression::kNeutral:     return "NEUTRAL";
+        case Expression::kHappy:       return "HAPPY";
+        case Expression::kCurious:     return "CURIOUS";
+        case Expression::kSleepy:      return "SLEEPY";
+        case Expression::kListening:   return "LISTENING";
+        case Expression::kThinking:    return "THINKING";
+        case Expression::kSpeaking:    return "SPEAKING";
+        case Expression::kSurprised:   return "SURPRISED";
+        case Expression::kShy:         return "SHY";
+        case Expression::kLove:        return "LOVE";
+        case Expression::kWink:        return "WINK";
+        case Expression::kConfused:    return "CONFUSED";
+        case Expression::kMischievous: return "MISCHIEVOUS";
+        case Expression::kSleeping:    return "SLEEPING";
+        default:                       return "UNKNOWN";
     }
 }
 
@@ -204,6 +211,72 @@ void EyeEngine::ApplyExpressionTargets() {
             left_.target_lower_lid = right_.target_lower_lid = 3.0f;
             left_.target_lower_arch = right_.target_lower_arch = 5.0f;
             break;
+
+        case Expression::kSurprised:
+            left_.target_width = right_.target_width = 34.0f;
+            left_.target_height = right_.target_height = 38.0f;
+            left_.target_corner_radius = right_.target_corner_radius = 13.0f;
+            left_.target_y = right_.target_y = static_cast<float>(left_.base_y - 2);
+            break;
+
+        case Expression::kShy:
+            left_.target_width = right_.target_width = 28.0f;
+            left_.target_height = right_.target_height = 24.0f;
+            left_.target_corner_radius = right_.target_corner_radius = 10.0f;
+            left_.target_upper_lid_l = left_.target_upper_lid_r = 6.0f;
+            right_.target_upper_lid_l = right_.target_upper_lid_r = 6.0f;
+            left_.target_x = static_cast<float>(left_.base_x - 3);
+            right_.target_x = static_cast<float>(right_.base_x - 3);
+            left_.target_y = right_.target_y = static_cast<float>(left_.base_y + 5);
+            break;
+
+        case Expression::kLove:
+            left_.target_width = right_.target_width = 30.0f;
+            left_.target_height = right_.target_height = 30.0f;
+            left_.target_y = right_.target_y = static_cast<float>(left_.base_y - 1);
+            break;
+
+        case Expression::kWink:
+            left_.target_width = 32.0f;
+            left_.target_height = 34.0f;
+            left_.target_corner_radius = 11.0f;
+            left_.target_y = static_cast<float>(left_.base_y - 1);
+            right_.target_width = 32.0f;
+            right_.target_height = 28.0f;
+            right_.target_y = static_cast<float>(right_.base_y + 1);
+            break;
+
+        case Expression::kConfused:
+            left_.target_width = 26.0f;
+            left_.target_height = 24.0f;
+            left_.target_upper_lid_l = 6.0f;
+            left_.target_upper_lid_r = 2.0f;
+            left_.target_y = static_cast<float>(left_.base_y + 2);
+            right_.target_width = 33.0f;
+            right_.target_height = 35.0f;
+            right_.target_corner_radius = 12.0f;
+            right_.target_y = static_cast<float>(right_.base_y - 3);
+            break;
+
+        case Expression::kMischievous:
+            left_.target_width = right_.target_width = 32.0f;
+            left_.target_height = right_.target_height = 28.0f;
+            left_.target_corner_radius = right_.target_corner_radius = 9.0f;
+            left_.target_upper_lid_l = 1.0f;
+            left_.target_upper_lid_r = 9.0f;
+            right_.target_upper_lid_l = 9.0f;
+            right_.target_upper_lid_r = 1.0f;
+            left_.target_lower_lid = right_.target_lower_lid = 4.0f;
+            left_.target_lower_arch = right_.target_lower_arch = 5.0f;
+            left_.target_x = static_cast<float>(left_.base_x + 5);
+            right_.target_x = static_cast<float>(right_.base_x + 5);
+            break;
+
+        case Expression::kSleeping:
+            left_.target_width = right_.target_width = 30.0f;
+            left_.target_height = right_.target_height = 24.0f;
+            left_.target_y = right_.target_y = static_cast<float>(left_.base_y + 3);
+            break;
     }
 }
 
@@ -225,6 +298,13 @@ void EyeEngine::SetGazeOffset(int8_t dx, int8_t dy, uint32_t hold_ms, uint32_t n
 }
 
 void EyeEngine::UpdateBlinker(uint32_t now_ms, float dt_sec) {
+    if (expr_ == Expression::kWink || expr_ == Expression::kSleeping) {
+        blink_phase_ = BlinkPhase::kOpen;
+        left_.blink_squeeze = 0.0f;
+        right_.blink_squeeze = 0.0f;
+        return;
+    }
+
     const float close_rate = (expr_ == Expression::kSleepy) ? 6.5f : 18.0f;
     const float open_rate = (expr_ == Expression::kSleepy) ? 4.5f : 14.0f;
 
@@ -277,7 +357,10 @@ void EyeEngine::UpdateGaze(uint32_t now_ms) {
     if (!auto_idle_gaze_) return;
     if (now_ms < gaze_override_until_ms_) return;
     if (expr_ == Expression::kThinking || expr_ == Expression::kListening ||
-        expr_ == Expression::kCurious) {
+        expr_ == Expression::kCurious || expr_ == Expression::kSurprised ||
+        expr_ == Expression::kShy || expr_ == Expression::kLove ||
+        expr_ == Expression::kWink || expr_ == Expression::kConfused ||
+        expr_ == Expression::kMischievous || expr_ == Expression::kSleeping) {
         return;
     }
 
@@ -348,6 +431,44 @@ void EyeEngine::UpdateExpressionMotion(uint32_t now_ms) {
             left_.target_height = right_.target_height = 27.0f + 6.0f * env;
             left_.target_lower_lid = right_.target_lower_lid = 2.0f + 3.5f * (1.0f - env);
             left_.target_lower_arch = right_.target_lower_arch = 4.0f + 2.5f * (1.0f - env);
+            break;
+        }
+        case Expression::kSurprised: {
+            const float pulse = sinf(t_sec * 5.0f);
+            left_.target_width = right_.target_width = 34.0f + pulse;
+            left_.target_height = right_.target_height = 38.0f + pulse;
+            break;
+        }
+        case Expression::kShy: {
+            const float sway = sinf(t_sec * 1.6f) * 1.5f;
+            left_.target_x = static_cast<float>(left_.base_x - 3) + sway;
+            right_.target_x = static_cast<float>(right_.base_x - 3) + sway;
+            break;
+        }
+        case Expression::kLove: {
+            const float beat = fabsf(sinf(t_sec * 3.8f)) * 1.8f;
+            left_.target_y = right_.target_y = static_cast<float>(left_.base_y - 1) - beat;
+            break;
+        }
+        case Expression::kWink: {
+            left_.target_y = static_cast<float>(left_.base_y - 1) + sinf(t_sec * 2.8f) * 0.8f;
+            break;
+        }
+        case Expression::kConfused: {
+            const float tilt = sinf(t_sec * 2.2f) * 1.5f;
+            left_.target_x = static_cast<float>(left_.base_x + 2) + tilt;
+            right_.target_x = static_cast<float>(right_.base_x + 2) + tilt;
+            break;
+        }
+        case Expression::kMischievous: {
+            const float sly = sinf(t_sec * 2.1f) * 2.0f;
+            left_.target_x = static_cast<float>(left_.base_x + 5) + sly;
+            right_.target_x = static_cast<float>(right_.base_x + 5) + sly;
+            break;
+        }
+        case Expression::kSleeping: {
+            const float breathe = sinf(t_sec * 0.9f);
+            left_.target_y = right_.target_y = static_cast<float>(left_.base_y + 3) + breathe;
             break;
         }
     }
@@ -441,13 +562,115 @@ void EyeEngine::DrawSingleEye(const EyeState& eye) {
     }
 }
 
+void EyeEngine::DrawHeart(int cx, int cy, int scale) {
+    static const char* const kHeart[10] = {
+        ".111...111.",
+        "11111.11111",
+        "11111111111",
+        "11111111111",
+        "11111111111",
+        ".111111111.",
+        "..1111111..",
+        "...11111...",
+        "....111....",
+        ".....1.....",
+    };
+    const int pw = 11 * scale;
+    const int ph = 10 * scale;
+    const int ox = ClampInt(cx - pw / 2, 4, gfx::kWidth - pw - 4);
+    const int oy = ClampInt(cy - ph / 2, 4, gfx::kHeight - ph - 4);
+    for (int r = 0; r < 10; ++r) {
+        for (int c = 0; c < 11; ++c) {
+            if (kHeart[r][c] == '1') {
+                for (int sy = 0; sy < scale; ++sy) {
+                    for (int sx = 0; sx < scale; ++sx) {
+                        fb_.SetPixel(ox + c * scale + sx, oy + r * scale + sy, 1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void EyeEngine::DrawGlyph(int ox, int oy, const char* const* pattern, uint8_t rows, int scale) {
+    for (uint8_t r = 0; r < rows; ++r) {
+        const char* row = pattern[r];
+        for (int c = 0; row[c] != '\0'; ++c) {
+            if (row[c] == '1') {
+                for (int sy = 0; sy < scale; ++sy) {
+                    for (int sx = 0; sx < scale; ++sx) {
+                        const int px = ClampInt(ox + c * scale + sx, 4, gfx::kWidth - 5);
+                        const int py = ClampInt(oy + static_cast<int>(r) * scale + sy, 4, gfx::kHeight - 5);
+                        fb_.SetPixel(px, py, 1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void EyeEngine::DrawWinkEye(const EyeState& eye) {
+    const int cx = ClampInt(RoundHalfAway(eye.x), 20, gfx::kWidth - 20);
+    const int cy = ClampInt(RoundHalfAway(eye.y), 14, gfx::kHeight - 14);
+    constexpr int kHalf = 13;
+    for (int dx = -kHalf; dx <= kHalf; ++dx) {
+        const float u = static_cast<float>(dx) / static_cast<float>(kHalf);
+        const int arch = RoundHalfAway(4.0f * (1.0f - u * u));
+        const int py = cy + 2 - arch;
+        for (int thick = 0; thick < 3; ++thick) {
+            fb_.SetPixel(cx + dx, py + thick, 1);
+        }
+    }
+}
+
+void EyeEngine::DrawSleepingEye(const EyeState& eye) {
+    const int cx = ClampInt(RoundHalfAway(eye.x), 20, gfx::kWidth - 20);
+    const int cy = ClampInt(RoundHalfAway(eye.y), 14, gfx::kHeight - 14);
+    constexpr int kHalf = 14;
+    for (int dx = -kHalf; dx <= kHalf; ++dx) {
+        const float u = static_cast<float>(dx) / static_cast<float>(kHalf);
+        const int sag = RoundHalfAway(3.5f * (1.0f - u * u));
+        const int py = cy + sag;
+        for (int thick = 0; thick < 4; ++thick) {
+            fb_.SetPixel(cx + dx, py + thick, 1);
+        }
+    }
+}
+
 void EyeEngine::RenderFrame(uint32_t now_ms) {
     fb_.Clear();
+
+    if (expr_ == Expression::kLove) {
+        const int beat = ((now_ms / 260U) % 2U == 0U) ? 1 : 0;
+        DrawHeart(RoundHalfAway(left_.x), RoundHalfAway(left_.y) - beat, 2);
+        DrawHeart(RoundHalfAway(right_.x), RoundHalfAway(right_.y) - beat, 2);
+        display::PresentFramebuffer(fb_);
+        return;
+    }
+
+    if (expr_ == Expression::kWink) {
+        DrawSingleEye(left_);
+        DrawWinkEye(right_);
+        display::PresentFramebuffer(fb_);
+        return;
+    }
+
+    if (expr_ == Expression::kSleeping) {
+        DrawSleepingEye(left_);
+        DrawSleepingEye(right_);
+        const int phase = static_cast<int>((now_ms / 450U) % 3U);
+        static const char* const kZSmall[4] = {"1111", "..1.", ".1..", "1111"};
+        static const char* const kZBig[5] = {"11111", "...1.", "..1..", ".1...", "11111"};
+        DrawGlyph(98, 16 - phase, kZSmall, 4, 1);
+        DrawGlyph(106, 9 - phase, kZBig, 5, 1);
+        display::PresentFramebuffer(fb_);
+        return;
+    }
 
     DrawSingleEye(left_);
     DrawSingleEye(right_);
 
-    // Subtle non-intrusive bottom-edge cues for Listening / Thinking
+    // Subtle non-intrusive bottom/corner cues
     if (expr_ == Expression::kListening) {
         const uint8_t pulse_r = ((now_ms / 280U) % 2U == 0U) ? 2 : 1;
         fb_.FillCircle(gfx::kWidth / 2, gfx::kHeight - 4, pulse_r, 1);
@@ -461,6 +684,22 @@ void EyeEngine::RenderFrame(uint32_t now_ms) {
                 fb_.DrawCircle(dx, gfx::kHeight - 4, 1, 1);
             }
         }
+    } else if (expr_ == Expression::kShy) {
+        const int cxs[2] = {RoundHalfAway(left_.x) - 10, RoundHalfAway(right_.x) + 10};
+        for (int cx : cxs) {
+            for (int off : {-4, 0, 4}) {
+                fb_.SetPixel(cx + off, 52, 1);
+                fb_.SetPixel(cx + off + 1, 51, 1);
+            }
+        }
+    } else if (expr_ == Expression::kConfused) {
+        static const char* const kQMark[7] = {
+            ".111.", "1...1", "...1.", "..1..", "..1..", ".....", "..1.."
+        };
+        DrawGlyph(112, 6, kQMark, 7, 1);
+    } else if (expr_ == Expression::kSurprised) {
+        static const char* const kBang[6] = {"11", "11", "11", "11", "..", "11"};
+        DrawGlyph(gfx::kWidth / 2 - 1, 6, kBang, 6, 1);
     }
 
     display::PresentFramebuffer(fb_);

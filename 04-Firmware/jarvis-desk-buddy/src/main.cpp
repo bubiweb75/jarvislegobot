@@ -7,12 +7,14 @@
 #include "display_driver.h"
 #include "eye_engine.h"
 #include "pinout_config.h"
+#include "sensor_stub.h"
 #include "state_machine.h"
 
 namespace {
 
 jarvis::eyes::EyeEngine g_eyes;
 jarvis::state::StateMachine g_state_machine;
+jarvis::sensors::SensorBridgeStub g_sensor_stub;
 
 }  // namespace
 
@@ -39,13 +41,16 @@ void setup() {
         Serial.println(F("WARN: No OLED ACK at 0x3C/0x3D (check wiring/VCC/GND). Continuing anyway."));
     }
 
+    g_sensor_stub.Begin();
     g_eyes.Begin(50, 14);
     g_state_machine.Begin(g_eyes, true);
+    g_state_machine.SetOledDetectedAddr(scan.detected_addr);
     Serial.println(F("Ready. Type HELP on Serial or press GPIO47 button."));
 }
 
 void loop() {
     const uint32_t now_ms = millis();
+    g_sensor_stub.Poll(now_ms);
     g_state_machine.Update(now_ms);
     g_eyes.Update(now_ms);
 }

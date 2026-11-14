@@ -10,6 +10,7 @@
 #include <string.h>
 #include "display_driver.h"
 #include "pinout_config.h"
+#include "sensor_stub.h"
 
 namespace jarvis::state {
 
@@ -152,6 +153,20 @@ void StateMachine::HandleCommand(const char* raw_cmd, uint32_t now_ms) {
         SetExpression(eyes::Expression::kThinking, true);
     } else if (strcmp(arg, "SPEAKING") == 0) {
         SetExpression(eyes::Expression::kSpeaking, true);
+    } else if (strcmp(arg, "SURPRISED") == 0) {
+        SetExpression(eyes::Expression::kSurprised, true);
+    } else if (strcmp(arg, "SHY") == 0) {
+        SetExpression(eyes::Expression::kShy, true);
+    } else if (strcmp(arg, "LOVE") == 0) {
+        SetExpression(eyes::Expression::kLove, true);
+    } else if (strcmp(arg, "WINK") == 0) {
+        SetExpression(eyes::Expression::kWink, true);
+    } else if (strcmp(arg, "CONFUSED") == 0) {
+        SetExpression(eyes::Expression::kConfused, true);
+    } else if (strcmp(arg, "MISCHIEVOUS") == 0) {
+        SetExpression(eyes::Expression::kMischievous, true);
+    } else if (strcmp(arg, "SLEEPING") == 0) {
+        SetExpression(eyes::Expression::kSleeping, true);
     } else if (strcmp(arg, "BLINK") == 0) {
         if (eyes_ != nullptr) eyes_->TriggerBlink(now_ms);
         Serial.println(F("OK:BLINK"));
@@ -159,8 +174,12 @@ void StateMachine::HandleCommand(const char* raw_cmd, uint32_t now_ms) {
         int dx = 0;
         int dy = 0;
         if (sscanf(arg + 5, "%d,%d", &dx, &dy) == 2 && eyes_ != nullptr) {
-            eyes_->SetGazeOffset(static_cast<int8_t>(dx), static_cast<int8_t>(dy), 2000U, now_ms);
-            Serial.println(F("OK:LOOK"));
+            if (dx < -11 || dx > 11 || dy < -6 || dy > 6) {
+                Serial.println(F("ERR:LOOK_RANGE (dx:-11..11,dy:-6..6)"));
+            } else {
+                eyes_->SetGazeOffset(static_cast<int8_t>(dx), static_cast<int8_t>(dy), 2000U, now_ms);
+                Serial.println(F("OK:LOOK"));
+            }
         } else {
             Serial.println(F("ERR:LOOK_SYNTAX (expected LOOK:dx,dy)"));
         }
@@ -175,8 +194,10 @@ void StateMachine::HandleCommand(const char* raw_cmd, uint32_t now_ms) {
         Serial.println(F("PONG"));
     } else if (strcmp(arg, "STATUS") == 0) {
         PrintStatus();
+    } else if (strcmp(arg, "DIAG") == 0) {
+        PrintDiagnostics(now_ms);
     } else if (strcmp(arg, "HELP") == 0) {
-        Serial.println(F("COMMANDS: NEUTRAL|HAPPY|CURIOUS|SLEEPY|LISTENING|THINKING|SPEAKING|BLINK|LOOK:dx,dy|AUTO:ON|AUTO:OFF|STATUS|PING"));
+        Serial.println(F("COMMANDS: IDLE|NEUTRAL|HAPPY|CURIOUS|SLEEPY|LISTENING|THINKING|SPEAKING|SURPRISED|SHY|LOVE|WINK|CONFUSED|MISCHIEVOUS|SLEEPING|BLINK|LOOK:dx,dy|AUTO:ON|AUTO:OFF|STATUS|DIAG|PING"));
     } else {
         Serial.print(F("ERR:UNKNOWN_CMD="));
         Serial.println(cmd);
@@ -190,6 +211,17 @@ void StateMachine::PrintStatus() const {
     Serial.print(auto_demo_enabled_ ? F("ON") : F("OFF"));
     Serial.print(F(";DRIVER="));
     Serial.println(kOledDriverName);
+}
+
+void StateMachine::PrintDiagnostics(uint32_t now_ms) const {
+    Serial.printf("OK:DIAG;STATE=%s;UPTIME_MS=%lu;FREE_HEAP=%lu;FREE_PSRAM=%lu;OLED_ADDR=0x%02X;DRIVER=%s;SENSORS=%s\n",
+                  eyes_ ? eyes::ExpressionToString(eyes_->GetExpression()) : "NONE",
+                  static_cast<unsigned long>(now_ms),
+                  static_cast<unsigned long>(ESP.getFreeHeap()),
+                  static_cast<unsigned long>(ESP.getFreePsram()),
+                  oled_addr_,
+                  kOledDriverName,
+                  sensors::SensorBridgeStub::StatusLabel());
 }
 
 void StateMachine::Update(uint32_t now_ms) {

@@ -22,7 +22,14 @@ enum class Expression : uint8_t {
     kSleepy,
     kListening,
     kThinking,
-    kSpeaking
+    kSpeaking,
+    kSurprised,
+    kShy,
+    kLove,
+    kWink,
+    kConfused,
+    kMischievous,
+    kSleeping
 };
 
 const char* ExpressionToString(Expression expr);
@@ -137,6 +144,10 @@ private:
     void InterpolateEye(EyeState& eye, float dt_sec);
     void RenderFrame(uint32_t now_ms);
     void DrawSingleEye(const EyeState& eye);
+    void DrawHeart(int cx, int cy, int scale);
+    void DrawGlyph(int ox, int oy, const char* const* pattern, uint8_t rows, int scale);
+    void DrawWinkEye(const EyeState& eye);
+    void DrawSleepingEye(const EyeState& eye);
 
     gfx::MonochromeFramebuffer fb_;
 };
