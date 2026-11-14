@@ -27,6 +27,31 @@ class StimulusType(str, Enum):
     WAKE_UP = "WAKE_UP"
     TEMP_ERROR = "TEMP_ERROR"
     REPLY_DONE = "REPLY_DONE"
+    # FASE 8.1 — Sensory interaction stimuli
+    PROXIMITY_APPROACH = "PROXIMITY_APPROACH"
+    PROXIMITY_LEAVE = "PROXIMITY_LEAVE"
+    TOUCH_SHORT = "TOUCH_SHORT"
+    TOUCH_LONG = "TOUCH_LONG"
+    TOUCH_MULTI = "TOUCH_MULTI"
+    MOTION_TILT = "MOTION_TILT"
+    MOTION_SHAKE = "MOTION_SHAKE"
+    MOTION_LIFT = "MOTION_LIFT"
+    LIGHT_DARK = "LIGHT_DARK"
+    LIGHT_BRIGHT = "LIGHT_BRIGHT"
+
+
+SENSORY_STIMULI: Set[StimulusType] = {
+    StimulusType.PROXIMITY_APPROACH,
+    StimulusType.PROXIMITY_LEAVE,
+    StimulusType.TOUCH_SHORT,
+    StimulusType.TOUCH_LONG,
+    StimulusType.TOUCH_MULTI,
+    StimulusType.MOTION_TILT,
+    StimulusType.MOTION_SHAKE,
+    StimulusType.MOTION_LIFT,
+    StimulusType.LIGHT_DARK,
+    StimulusType.LIGHT_BRIGHT,
+}
 
 
 DEFAULT_STIMULUS_PRIORITIES: Dict[StimulusType, int] = {
@@ -34,12 +59,22 @@ DEFAULT_STIMULUS_PRIORITIES: Dict[StimulusType, int] = {
     StimulusType.WAKE_UP: 90,
     StimulusType.SUDDEN_NOISE: 85,
     StimulusType.BUTTON_PRESS: 80,
+    StimulusType.MOTION_SHAKE: 78,
+    StimulusType.MOTION_LIFT: 76,
     StimulusType.COMPLIMENT: 70,
     StimulusType.JOKE: 68,
+    StimulusType.TOUCH_LONG: 66,
     StimulusType.GREETING: 65,
+    StimulusType.TOUCH_MULTI: 64,
+    StimulusType.TOUCH_SHORT: 62,
     StimulusType.REPLY_DONE: 55,
+    StimulusType.MOTION_TILT: 52,
+    StimulusType.LIGHT_BRIGHT: 50,
+    StimulusType.PROXIMITY_APPROACH: 48,
     StimulusType.QUESTION: 45,
     StimulusType.HARD_ANSWER: 40,
+    StimulusType.PROXIMITY_LEAVE: 30,
+    StimulusType.LIGHT_DARK: 25,
     StimulusType.INACTIVITY: 20,
 }
 
@@ -55,6 +90,16 @@ DEFAULT_COOLDOWNS_MS: Dict[StimulusType, int] = {
     StimulusType.QUESTION: 1800,
     StimulusType.HARD_ANSWER: 2500,
     StimulusType.INACTIVITY: 10000,
+    StimulusType.PROXIMITY_APPROACH: 6000,
+    StimulusType.PROXIMITY_LEAVE: 4000,
+    StimulusType.TOUCH_SHORT: 1500,
+    StimulusType.TOUCH_LONG: 2500,
+    StimulusType.TOUCH_MULTI: 2500,
+    StimulusType.MOTION_TILT: 3000,
+    StimulusType.MOTION_SHAKE: 3500,
+    StimulusType.MOTION_LIFT: 3500,
+    StimulusType.LIGHT_DARK: 10000,
+    StimulusType.LIGHT_BRIGHT: 4000,
 }
 
 
@@ -222,6 +267,10 @@ class EmotionEngine:
         if stimulus not in self.config.enabled_stimuli:
             return None
 
+        # Sensory events must never interrupt active voice conversation or queue up late
+        if self.conversation_busy and stimulus in SENSORY_STIMULI:
+            return None
+
         cooldown_end = self.cooldown_until.get(stimulus, 0)
         if now_ms < cooldown_end:
             return None
@@ -241,8 +290,8 @@ class EmotionEngine:
             seq=self._seq,
         )
 
-        # Wake up on direct user stimuli
-        if stimulus not in (StimulusType.INACTIVITY, StimulusType.TEMP_ERROR):
+        # Wake up on direct user/sensory stimuli (except prolonged darkness / inactivity / error)
+        if stimulus not in (StimulusType.INACTIVITY, StimulusType.TEMP_ERROR, StimulusType.LIGHT_DARK):
             self.last_activity_ms = now_ms
             if self.is_sleeping and stimulus != StimulusType.WAKE_UP:
                 self.is_sleeping = False
@@ -395,6 +444,117 @@ class EmotionEngine:
                 reason="Confusione per errore temporaneo",
             )
 
+        if s == StimulusType.PROXIMITY_APPROACH:
+            expr = Expression.SURPRISED if event.payload == "FAST" else self.rng.choice((Expression.CURIOUS, Expression.HAPPY))
+            return ReactionDecision(
+                expression=expr,
+                duration_ms=self._scaled_duration(2200),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                reason="Oggetto in avvicinamento (VL53L0X)",
+            )
+
+        if s == StimulusType.PROXIMITY_LEAVE:
+            return ReactionDecision(
+                expression=Expression.CURIOUS,
+                duration_ms=self._scaled_duration(1200),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                reason="Oggetto allontanato (VL53L0X)",
+            )
+
+        if s == StimulusType.TOUCH_SHORT:
+            return ReactionDecision(
+                expression=Expression.SHY,
+                duration_ms=self._scaled_duration(2200),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                reason="Tocco breve capacitivo (TTP223)",
+            )
+
+        if s == StimulusType.TOUCH_LONG:
+            return ReactionDecision(
+                expression=Expression.LOVE,
+                duration_ms=self._scaled_duration(2800),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                voice_line=self._pick_voice_line(("Che bello!", "Mi fa piacere!"), 0.40),
+                reason="Carezza prolungata (TTP223)",
+            )
+
+        if s == StimulusType.TOUCH_MULTI:
+            expr = self.rng.choice((Expression.HAPPY, Expression.MISCHIEVOUS))
+            return ReactionDecision(
+                expression=expr,
+                duration_ms=self._scaled_duration(2300),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                reason="Tocchi ripetuti (TTP223)",
+            )
+
+        if s == StimulusType.MOTION_TILT:
+            expr = self.rng.choice((Expression.CURIOUS, Expression.CONFUSED))
+            return ReactionDecision(
+                expression=expr,
+                duration_ms=self._scaled_duration(2000),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                reason="Inclinazione rilevata (MPU6050)",
+            )
+
+        if s == StimulusType.MOTION_SHAKE:
+            expr = self.rng.choice((Expression.SURPRISED, Expression.CONFUSED))
+            return ReactionDecision(
+                expression=expr,
+                duration_ms=self._scaled_duration(2200),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                voice_line=self._pick_voice_line(("Ehi, piano!",), 0.35),
+                reason="Movimento improvviso / scossa (MPU6050)",
+            )
+
+        if s == StimulusType.MOTION_LIFT:
+            return ReactionDecision(
+                expression=Expression.SURPRISED,
+                duration_ms=self._scaled_duration(2300),
+                priority=event.priority,
+                stimulus=s,
+                return_to=ret,
+                voice_line=self._pick_voice_line(("Oh, si vola!",), 0.35),
+                reason="Sollevamento simulato (MPU6050)",
+            )
+
+        if s == StimulusType.LIGHT_DARK:
+            self.base_expression = Expression.SLEEPY
+            return ReactionDecision(
+                expression=Expression.SLEEPY,
+                duration_ms=self._scaled_duration(3200),
+                priority=event.priority,
+                stimulus=s,
+                return_to=Expression.SLEEPY,
+                reason="Ambiente buio prolungato (BH1750)",
+            )
+
+        if s == StimulusType.LIGHT_BRIGHT:
+            self.is_sleeping = False
+            self.base_expression = Expression.IDLE
+            return ReactionDecision(
+                expression=Expression.SURPRISED if event.payload == "WAKE" else Expression.HAPPY,
+                duration_ms=self._scaled_duration(2000),
+                priority=event.priority,
+                stimulus=s,
+                return_to=Expression.IDLE,
+                trigger_blink=True,
+                reason="Ritorno luce ambientale (BH1750)",
+            )
+
         # REPLY_DONE
         expr = self.rng.choice((Expression.HAPPY, Expression.WINK))
         return ReactionDecision(
@@ -407,6 +567,12 @@ class EmotionEngine:
         )
 
     def _dispatch_next_if_ready(self, now_ms: int) -> Optional[ReactionDecision]:
+        # Drop expired transient sensory events so they never play late after a conversation
+        self.pending_queue = [
+            e
+            for e in self.pending_queue
+            if not (e.stimulus in SENSORY_STIMULI and (now_ms - e.now_ms) > 4000)
+        ]
         if not self.pending_queue:
             return None
 

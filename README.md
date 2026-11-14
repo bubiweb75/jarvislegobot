@@ -29,8 +29,8 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 | **FASE 4** | Firmware `jarvis-desk-buddy` (occhi OLED 7 espressioni) + Simulatore Windows | ✅ Compilabile e testato su simulatore |
 | **FASE 5** | Voice & AI su PC Windows 11 (`faster-whisper` + `Ollama qwen2.5:3b` + `Piper Riccardo Amichetto Vivace`) | ✅ Operativo su PC Windows 11 |
 | **FASE 6** | Preparazione elettronica ESP32-S3, architettura audio USB e piano collaudo | ✅ Documentazione pronta (`06-Hardware-Integration/`), in attesa componenti |
-| **FASE 7** | Emotion &amp; Reaction Engine (Personalità C, 14 espressioni OLED, integrato su PC/Simulatore) | ✅ Implementato e testato su PC/Simulatore (sync ESP32-S3 all'arrivo hardware) |
-| **FASE 8** | Collaudo hardware reale, integrazione USB e montaggio finale LEGO | ⏳ Da iniziare all'arrivo dei componenti |
+| **FASE 7** | Emotion &amp; Reaction Engine (Personalità C, 14 espressioni OLED, integrato su PC/Simulatore) | ✅ Implementato e consolidato (`ab98924`) |
+| **FASE 8** | Progettazione sensori (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`) + **FASE 8.1 Sensor Lab simulato** | ✅ Progetto e simulatore PC pronti (`06-Hardware-Integration/FASE_8_SENSORY_INTERACTION.md`); hardware da collaudare |
 
 ---
 

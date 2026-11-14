@@ -8,6 +8,7 @@ from tkinter import ttk
 from emotion_engine import EmotionEngine, ReactionDecision, StimulusType
 from eye_engine import ALL_EXPRESSIONS, EyeEngine, Expression, SimulatorStateMachine
 from monochrome_fb import HEIGHT, WIDTH
+from sensor_manager import SensorManager, SensorType, SimulatedSensorProvider
 
 
 class JarvisSimulatorApp:
@@ -28,6 +29,11 @@ class JarvisSimulatorApp:
         self.sm = SimulatorStateMachine(self.eyes, auto_demo=False)
         self.emotion_engine = EmotionEngine(seed=2026)
         self.emotion_enabled = True
+        self.sensor_provider = SimulatedSensorProvider()
+        self.sensor_manager = SensorManager(
+            provider=self.sensor_provider,
+            emotion_engine=self.emotion_engine,
+        )
 
         self.fps_frames = 0
         self.fps_last_time = time.monotonic()
@@ -71,9 +77,18 @@ class JarvisSimulatorApp:
         self.oled_label = tk.Label(bezel, image=self.zoom_img, bg="#000000", bd=2, relief="sunken")
         self.oled_label.pack()
 
+        # Notebook tabs: keep UI compact while exposing Sensor Lab
+        self.sim_notebook = ttk.Notebook(self.container)
+        self.sim_notebook.pack(fill="both", expand=True, padx=16, pady=(6, 10))
+
+        tab_emo = tk.Frame(self.sim_notebook, bg="#0B101B")
+        tab_sensors = tk.Frame(self.sim_notebook, bg="#0B101B", padx=8, pady=6)
+        self.sim_notebook.add(tab_emo, text=" Espressioni & Emotion Engine ")
+        self.sim_notebook.add(tab_sensors, text=" Sensor Lab — Physical Interaction ")
+
         # Expression buttons
         expr_frame = tk.LabelFrame(
-            self.container,
+            tab_emo,
             text=" Espressioni (Clicca per testare) ",
             fg="#94A3B8",
             bg="#0B101B",
@@ -81,7 +96,7 @@ class JarvisSimulatorApp:
             padx=8,
             pady=8,
         )
-        expr_frame.pack(fill="x", padx=16, pady=(6, 4))
+        expr_frame.pack(fill="x", padx=4, pady=(6, 4))
 
         self.expr_buttons = {}
         for idx, expr in enumerate(ALL_EXPRESSIONS):
@@ -106,7 +121,7 @@ class JarvisSimulatorApp:
 
         # Emotion & Reaction Engine (Personalità C)
         emo_frame = tk.LabelFrame(
-            self.container,
+            tab_emo,
             text=" Emotion & Reaction Engine — Personalità C (Molto espressivo) ",
             fg="#94A3B8",
             bg="#0B101B",
@@ -114,7 +129,7 @@ class JarvisSimulatorApp:
             padx=8,
             pady=6,
         )
-        emo_frame.pack(fill="x", padx=16, pady=(2, 4))
+        emo_frame.pack(fill="x", padx=4, pady=(2, 4))
 
         stim_row = tk.Frame(emo_frame, bg="#0B101B")
         stim_row.pack(fill="x", pady=(0, 4))
@@ -196,7 +211,7 @@ class JarvisSimulatorApp:
 
         # Action & Gaze Controls
         ctrl_frame = tk.LabelFrame(
-            self.container,
+            tab_emo,
             text=" Controlli Animazione, Sguardo & Protocollo Seriale Raspberry Pi ",
             fg="#94A3B8",
             bg="#0B101B",
@@ -204,7 +219,7 @@ class JarvisSimulatorApp:
             padx=8,
             pady=8,
         )
-        ctrl_frame.pack(fill="x", padx=16, pady=(4, 12))
+        ctrl_frame.pack(fill="x", padx=4, pady=(4, 6))
 
         row1 = tk.Frame(ctrl_frame, bg="#0B101B")
         row1.pack(fill="x", pady=(0, 6))
@@ -250,7 +265,149 @@ class JarvisSimulatorApp:
         self.cmd_resp_var = tk.StringVar(value="Risposta: pronto (es. STATE:HAPPY, BLINK, LOOK:10,-5, STATUS)")
         tk.Label(row2, textvariable=self.cmd_resp_var, fg="#A7F3D0", bg="#0B101B", font=("Consolas", 9)).pack(side="left")
 
+        self._build_sensor_lab_ui(tab_sensors)
         self._highlight_active_button()
+
+    def _build_sensor_lab_ui(self, parent: tk.Frame) -> None:
+        hdr = tk.LabelFrame(
+            parent,
+            text=" Sensor Lab — JARVIS Physical Interaction (Simulazione FASE 8.1) ",
+            fg="#94A3B8",
+            bg="#0B101B",
+            font=("Segoe UI", 9, "bold"),
+            padx=8,
+            pady=6,
+        )
+        hdr.pack(fill="both", expand=True)
+
+        # Row 0: Enable/Disable individual sensors + Reset
+        en_row = tk.Frame(hdr, bg="#0B101B")
+        en_row.pack(fill="x", pady=(0, 6))
+        self.sensor_en_vars = {}
+        for s_type, lbl in [
+            (SensorType.VL53L0X, "VL53L0X (Distanza)"),
+            (SensorType.TTP223, "TTP223 (Tocco)"),
+            (SensorType.MPU6050, "MPU6050 (IMU)"),
+            (SensorType.BH1750, "BH1750 (Luce)"),
+        ]:
+            var = tk.BooleanVar(value=True)
+            self.sensor_en_vars[s_type] = var
+            tk.Checkbutton(
+                en_row,
+                text=lbl,
+                variable=var,
+                command=lambda st=s_type, v=var: self._on_toggle_sensor_enable(st, v),
+                fg="#CBD5E1",
+                bg="#0B101B",
+                selectcolor="#1E293B",
+                activebackground="#0B101B",
+                activeforeground="#FFFFFF",
+                font=("Segoe UI", 8, "bold"),
+            ).pack(side="left", padx=(0, 8))
+
+        tk.Button(
+            en_row,
+            text="Reset Sensori",
+            bg="#334155",
+            fg="#F8FAFC",
+            relief="flat",
+            font=("Segoe UI", 8, "bold"),
+            padx=8,
+            command=self._on_reset_sensors,
+        ).pack(side="right")
+
+        # Row 1: VL53L0X Distance slider
+        r_dist = tk.Frame(hdr, bg="#0B101B")
+        r_dist.pack(fill="x", pady=2)
+        self.dist_val_var = tk.StringVar(value="80 cm")
+        tk.Label(r_dist, text="Distanza VL53L0X:", width=18, anchor="w", fg="#E2E8F0", bg="#0B101B", font=("Segoe UI", 8)).pack(side="left")
+        self.dist_scale = tk.Scale(
+            r_dist, from_=5, to=120, orient="horizontal", length=220, showvalue=False,
+            bg="#0B101B", fg="#F8FAFC", troughcolor="#1E293B", highlightthickness=0,
+            command=self._on_dist_change,
+        )
+        self.dist_scale.set(80)
+        self.dist_scale.pack(side="left", padx=(0, 8))
+        tk.Label(r_dist, textvariable=self.dist_val_var, width=10, fg="#38BDF8", bg="#0B101B", font=("Consolas", 9, "bold")).pack(side="left")
+
+        # Row 2: BH1750 Lux slider
+        r_lux = tk.Frame(hdr, bg="#0B101B")
+        r_lux.pack(fill="x", pady=2)
+        self.lux_val_var = tk.StringVar(value="300 lux")
+        tk.Label(r_lux, text="Luce BH1750 (lux):", width=18, anchor="w", fg="#E2E8F0", bg="#0B101B", font=("Segoe UI", 8)).pack(side="left")
+        self.lux_scale = tk.Scale(
+            r_lux, from_=0, to=800, orient="horizontal", length=220, showvalue=False,
+            bg="#0B101B", fg="#F8FAFC", troughcolor="#1E293B", highlightthickness=0,
+            command=self._on_lux_change,
+        )
+        self.lux_scale.set(300)
+        self.lux_scale.pack(side="left", padx=(0, 8))
+        tk.Label(r_lux, textvariable=self.lux_val_var, width=10, fg="#FCD34D", bg="#0B101B", font=("Consolas", 9, "bold")).pack(side="left")
+
+        # Row 3: MPU6050 Roll & Pitch sliders
+        r_imu = tk.Frame(hdr, bg="#0B101B")
+        r_imu.pack(fill="x", pady=2)
+        tk.Label(r_imu, text="Inclinazione Roll/Pitch:", width=18, anchor="w", fg="#E2E8F0", bg="#0B101B", font=("Segoe UI", 8)).pack(side="left")
+        self.roll_scale = tk.Scale(
+            r_imu, from_=-45, to=45, orient="horizontal", length=110, showvalue=False,
+            bg="#0B101B", fg="#F8FAFC", troughcolor="#1E293B", highlightthickness=0,
+            command=self._on_tilt_change,
+        )
+        self.roll_scale.set(0)
+        self.roll_scale.pack(side="left", padx=(0, 4))
+        self.pitch_scale = tk.Scale(
+            r_imu, from_=-45, to=45, orient="horizontal", length=110, showvalue=False,
+            bg="#0B101B", fg="#F8FAFC", troughcolor="#1E293B", highlightthickness=0,
+            command=self._on_tilt_change,
+        )
+        self.pitch_scale.set(0)
+        self.pitch_scale.pack(side="left", padx=(0, 8))
+        self.tilt_val_var = tk.StringVar(value="0° / 0°")
+        tk.Label(r_imu, textvariable=self.tilt_val_var, width=12, fg="#A7F3D0", bg="#0B101B", font=("Consolas", 9, "bold")).pack(side="left")
+
+        # Row 4: TTP223 Touch & MPU6050 Action buttons
+        r_act = tk.Frame(hdr, bg="#0B101B")
+        r_act.pack(fill="x", pady=(6, 4))
+        for text, bg, cmd in [
+            ("Tocco Breve", "#0284C7", lambda: self._on_sim_touch(180)),
+            ("Tocco Prolungato", "#7C3AED", lambda: self._on_sim_touch(1050)),
+            ("Doppio Tocco", "#0D9488", self._on_sim_double_touch),
+            ("Movimento Improvviso", "#D97706", self._on_sim_shake),
+            ("Sollevamento Simulato", "#DC2626", self._on_sim_lift),
+        ]:
+            tk.Button(
+                r_act, text=text, bg=bg, fg="#FFFFFF", relief="flat",
+                font=("Segoe UI", 8, "bold"), padx=7, pady=3, command=cmd,
+            ).pack(side="left", padx=2)
+
+        self.touch_hold_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            r_act,
+            text="Mantieni Tocco",
+            variable=self.touch_hold_var,
+            command=self._on_toggle_touch_hold,
+            fg="#F9A8D4",
+            bg="#0B101B",
+            selectcolor="#1E293B",
+            activebackground="#0B101B",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 8, "bold"),
+        ).pack(side="left", padx=(6, 0))
+
+        # Row 5: Real-time Sensor Lab Telemetry
+        self.sensor_telemetry_var = tk.StringVar(
+            value="Sensori: 80cm | 300lux | 0°/0° | Evento: Nessuno | Emozione: IDLE | Cooldown: 0ms"
+        )
+        tk.Label(
+            hdr,
+            textvariable=self.sensor_telemetry_var,
+            fg="#7DD3FC",
+            bg="#0B101B",
+            font=("Consolas", 8),
+            anchor="w",
+            wraplength=730,
+            justify="left",
+        ).pack(fill="x", pady=(4, 0))
 
     def _highlight_active_button(self) -> None:
         for expr, btn in self.expr_buttons.items():
@@ -325,6 +482,88 @@ class JarvisSimulatorApp:
             f"Evento: {t['last_event']} | Emozione: {t['active_emotion']} | "
             f"Priorità: {t['priority']} | Durata: {t['remaining_ms']}ms | Cooldown: {t['cooldown_ms']}ms"
         )
+        d = self.sensor_manager.get_diagnostics(now_ms)
+        dis = ",".join(d["disabled_sensors"]) if d["disabled_sensors"] else "nessuno"
+        self.sensor_telemetry_var.set(
+            f"Valori: {self.sensor_provider.distance_cm:.0f}cm ({d['proximity_state']}) | "
+            f"{self.sensor_provider.lux:.0f}lux ({d['light_state']}) | "
+            f"R:{self.sensor_provider.roll_deg:.0f}° P:{self.sensor_provider.pitch_deg:.0f}° | "
+            f"Evento: {d['last_event']} -> {t['active_emotion']} | "
+            f"Cooldown: {d['cooldown_ms']}ms | Disabilitati: {dis}"
+        )
+
+    def _activate_sensor_mode(self) -> None:
+        self.sm.auto_demo = False
+        self.emotion_enabled = True
+
+    def _on_toggle_sensor_enable(self, sensor: SensorType, var: tk.BooleanVar) -> None:
+        self.sensor_manager.config.set_enabled(sensor, var.get())
+        self._update_emotion_telemetry(self._now_ms())
+
+    def _on_dist_change(self, val: str) -> None:
+        self._activate_sensor_mode()
+        d = float(val)
+        self.sensor_provider.distance_cm = d
+        self.dist_val_var.set(f"{d:.0f} cm")
+
+    def _on_lux_change(self, val: str) -> None:
+        self._activate_sensor_mode()
+        lx = float(val)
+        self.sensor_provider.lux = lx
+        self.lux_val_var.set(f"{lx:.0f} lux")
+
+    def _on_tilt_change(self, _val: str) -> None:
+        self._activate_sensor_mode()
+        r = float(self.roll_scale.get())
+        p = float(self.pitch_scale.get())
+        self.sensor_provider.roll_deg = r
+        self.sensor_provider.pitch_deg = p
+        self.tilt_val_var.set(f"{r:.0f}° / {p:.0f}°")
+
+    def _on_toggle_touch_hold(self) -> None:
+        self._activate_sensor_mode()
+        self.sensor_provider.touch_pressed = self.touch_hold_var.get()
+
+    def _on_sim_touch(self, duration_ms: int) -> None:
+        self._activate_sensor_mode()
+        self.sensor_provider.touch_pressed = True
+        self.root.after(duration_ms, self._release_sim_touch)
+
+    def _release_sim_touch(self) -> None:
+        if not self.touch_hold_var.get():
+            self.sensor_provider.touch_pressed = False
+
+    def _on_sim_double_touch(self) -> None:
+        self._activate_sensor_mode()
+        self.sensor_provider.touch_pressed = True
+        self.root.after(140, lambda: setattr(self.sensor_provider, "touch_pressed", False))
+        self.root.after(280, lambda: setattr(self.sensor_provider, "touch_pressed", True))
+        self.root.after(420, self._release_sim_touch)
+
+    def _on_sim_shake(self) -> None:
+        self._activate_sensor_mode()
+        self.sensor_provider.trigger_sudden_motion()
+
+    def _on_sim_lift(self) -> None:
+        self._activate_sensor_mode()
+        self.sensor_provider.trigger_lift()
+
+    def _on_reset_sensors(self) -> None:
+        now_ms = self._now_ms()
+        self.sensor_provider.reset_defaults()
+        self.sensor_manager.config.reset_defaults()
+        self.sensor_manager.reset_state()
+        for s_type, var in self.sensor_en_vars.items():
+            var.set(True)
+        self.dist_scale.set(80)
+        self.lux_scale.set(300)
+        self.roll_scale.set(0)
+        self.pitch_scale.set(0)
+        self.touch_hold_var.set(False)
+        self.dist_val_var.set("80 cm")
+        self.lux_val_var.set("300 lux")
+        self.tilt_val_var.set("0° / 0°")
+        self._update_emotion_telemetry(now_ms)
 
     def _refresh_oled_image(self) -> None:
         # Build crisp 128x64 monochrome PPM (P6) and integer-zoom 6x with zero blur!
@@ -345,6 +584,7 @@ class JarvisSimulatorApp:
         if changed is not None:
             self._highlight_active_button()
         elif self.emotion_enabled and not self.sm.auto_demo:
+            self.sensor_manager.update(now_ms)
             decision = self.emotion_engine.tick(now_ms)
             if decision is not None:
                 self.apply_reaction_decision(decision, now_ms)
