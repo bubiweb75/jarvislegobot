@@ -13,11 +13,16 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Segreti e configurazioni locali Voice & AI
+# Segreti, configurazioni locali e memoria personale
 .env
 .env.local
 05-Voice-AI/.env
 05-Voice-AI/config.local.json
+05-Voice-AI/data/
+*.db
+*.sqlite
+*.sqlite3
+*.corrupt.*.bak
 
 # Build PlatformIO
 .pio/

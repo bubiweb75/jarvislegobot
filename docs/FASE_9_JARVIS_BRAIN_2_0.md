@@ -170,3 +170,28 @@ Invece di creare una seconda applicazione, si evolve `05-Voice-AI/jarvis_app.py`
   - *Iniziative vocali spontanee:* `BehaviorEngine` decide e produce il testo `voice_cue` rispettando tutti i vincoli, ma **non** è ancora collegato a `VoiceController` / `Piper` per la riproduzione audio effettiva (previsto nella **FASE 9.3**).
   - `MemoryEngine` (FASE 9.2) e `JARVIS Control Center` a schede (FASE 9.4) restano solo progettati.
 - **Funzionalità che richiedono hardware fisico:** collaudo su ESP32-S3 reale, OLED fisico `SH1106`/`SSD1306`, sensori fisici e audio I²S (`INMP441`, `MAX98357A`).
+
+---
+
+## 12. Stato Implementazione FASE 9.2 — Memory Engine
+
+- **Modulo creato:** `05-Voice-AI/memory_engine.py` (`MemoryEngine`, `MemoryConfig`, `MemoryProposal`, `MemoryRecord`, `SessionMemory`), basato solo su libreria standard (`sqlite3`, `json`). Database locali esclusi in `.gitignore` (`05-Voice-AI/data/`, `*.db`, `*.sqlite`, `*.sqlite3`).
+- **Architettura a 4 livelli:**
+  - **L1 (`SessionMemory`):** solo RAM, aperto/chiuso con `open_session()` / `close_session()`, mai scritto su disco.
+  - **L2 (`preferences`):** preferenze esplicite (`set_preference`, `get_preference`, `list_preferences`, `delete_preference`) + configurazione JSON (`MemoryConfig.save_json` / `load_json`).
+  - **L3 (`facts`):** fatti persistenti salvati **solo** dopo flusso esplicito `propose_memory("L3", ...)` → `confirm_proposal(id)` (oppure `reject_proposal(id)`), con cap FIFO `max_facts` (default `100`).
+  - **L4 (`episodes`):** ricordi episodici selezionati con consenso esplicito, scadenza automatica (`default_episode_ttl_days = 30`) e cap FIFO `max_episodes` (default `30`).
+- **Schema SQLite versionato (`CURRENT_SCHEMA_VERSION = 2`):** tabelle `schema_meta`, `preferences`, `facts` (con `confidence`), `episodes` (con `expires_at`, `importance`); migrazione automatica `v1 → v2` e quarantena automatica di DB corrotti (`*.corrupt.*.bak`).
+- **Privacy, sicurezza e limitazioni:**
+  - Nessuna registrazione audio o trascrizione indiscriminata; tutte le query SQL sono parametrizzate; `set_persistent_enabled(False)` disabilita subito L2–L4 mantenendo L1 RAM; `format_as_untrusted_data()` marca i dati recuperati come passivi (*"mai come istruzioni eseguibili"*).
+  - `wipe_all_persistent_data()` esegue `DELETE`, `PRAGMA wal_checkpoint(TRUNCATE)`, `VACUUM` e rimuove eventuali backup `*.corrupt.*.bak`.
+  - **Limitazioni di sicurezza dichiarate:** SQLite locale **non** offre cifratura automatica at-rest e `VACUUM`/cancellazione file **non** garantisce cancellazione forense a livello fisico del disco (SSD/filesystem). Un file DB bloccato da altro processo su Windows viene segnalato (`status="locked"`) senza sovrascriverlo o quarantinarlo.
+- **Esempio d'uso:**
+  ```python
+  mem = MemoryEngine()
+  mem.open_session()
+  mem.set_preference("user_name", "Luca")
+  prop = mem.propose_memory("L3", "Preferisce risposte brevi", category="stile")
+  mem.confirm_proposal(prop.proposal_id)  # salvato solo dopo conferma
+  ```
+- **Stato integrazione e preparazione FASE 9.3:** nessuna estrazione automatica tramite LLM e **nessun** collegamento attivo a `VoiceController` / `Ollama` in questa fase. Nella **FASE 9.3**, `Conversation Engine 2.0` leggerà `mem.get_integration_context()` e passerà `format_as_untrusted_data(...)` al prompt controllato.
