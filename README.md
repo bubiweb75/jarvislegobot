@@ -36,9 +36,10 @@ Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici
 
 ## Indice Documentazione
 
-### Documenti Generali e FASE 1
+### Documenti Generali, FASE 1 e FASE 9
 - [FASE 1 – Analisi Tecnica Iniziale](docs/FASE_1_Analisi_Tecnica.md)
 - [FASE 1 – Integrazione e Decisioni Definitive](docs/FASE_1_Integrazione_e_Decisioni.md)
+- [FASE 9.0 – Analisi e Progettazione JARVIS BRAIN 2.0](docs/FASE_9_JARVIS_BRAIN_2_0.md)
 
 ### FASE 2 – Hardware Storico (`archive/01-Hardware/`, archiviato — sostituito da `06-Hardware-Integration/` per v1 USB)
 - [Elaborato A – Schema Elettronico, Alimentazione e Protezioni](archive/01-Hardware/01_Schema_Elettronico_e_Alimentazione.md)
