@@ -155,3 +155,18 @@ Invece di creare una seconda applicazione, si evolve `05-Voice-AI/jarvis_app.py`
 1. **Formato persistenza (`MemoryEngine` — FASE 9.2):** **SQLite** per preferenze e ricordi autorizzati; **JSON** per configurazioni applicative semplici. *(Non implementato in FASE 9.0/9.1).*
 2. **Iniziative vocali spontanee:** massimo **`2` all'ora**, intervallo minimo **`20` minuti** (entrambe le soglie configurabili), con **disattivazione completa** possibile. Nessuna iniziativa vocale durante conversazioni, ascolto, riproduzione vocale o `Quiet Mode`.
 3. **Roadmap:** approvata l'esecuzione della **FASE 9.1** (`BehaviorEngine` + `PersonalityProfile` + `EyeEngine 2.0`) dopo il consolidamento documentale della FASE 9.0.
+
+---
+
+## 11. Stato Implementazione FASE 9.1 — Moduli, Interfacce e Limiti Attuali
+
+- **Funzionalità implementate e verificate (FASE 9.1):**
+  - `04-Firmware/jarvis-desk-buddy-sim/personality.py` (`PersonalityProfile`, `PersonalityConfig`, `MoodState`): tratti Personalità C, controllo intensità/frequenza/variazione, selezione non ripetitiva dei cue (`pick_cue`) e validazione sicura dei limiti (`NaN`/negativi).
+  - `04-Firmware/jarvis-desk-buddy-sim/eye_engine_v2.py` (`EyeEngine2`, `EyeStep`, `clamp_firmware_look`): sequenze temporizzate e sguardi contestuali compatibili al 100% con le 14 espressioni e i comandi `STATE:*`, `LOOK:dx,dy` (`-11..11`, `-6..6`), `BLINK` del firmware FASE 8.2A.
+  - `04-Firmware/jarvis-desk-buddy-sim/behavior_engine.py` (`BehaviorEngine`, `RobotMode`, `BehaviorEvent`, `BehaviorDecision`): arbitro deterministico con priorità, interruzione sequenze a priorità inferiore, `Quiet Mode`, cooldown, limiti `2/ora` e `20 min`, blocco iniziative in `LISTENING`/`THINKING`/`SPEAKING`/`SLEEPING`, diagnostica limitata senza dati sensibili.
+  - Integrazione nel loop non bloccante di `simulator_gui.py` (con protezione `try/except` e sincronizzazione modalità).
+- **Funzionalità simulate:** `SensorManager` + `SimulatedSensorProvider` (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`), decadimento umore simulato in RAM.
+- **Funzionalità predisposte ma non ancora integrate:**
+  - *Iniziative vocali spontanee:* `BehaviorEngine` decide e produce il testo `voice_cue` rispettando tutti i vincoli, ma **non** è ancora collegato a `VoiceController` / `Piper` per la riproduzione audio effettiva (previsto nella **FASE 9.3**).
+  - `MemoryEngine` (FASE 9.2) e `JARVIS Control Center` a schede (FASE 9.4) restano solo progettati.
+- **Funzionalità che richiedono hardware fisico:** collaudo su ESP32-S3 reale, OLED fisico `SH1106`/`SSD1306`, sensori fisici e audio I²S (`INMP441`, `MAX98357A`).

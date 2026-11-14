@@ -5,9 +5,12 @@ import time
 import tkinter as tk
 from tkinter import ttk
 
+from behavior_engine import BehaviorDecision, BehaviorEngine, RobotMode
 from emotion_engine import EmotionEngine, ReactionDecision, StimulusType
 from eye_engine import ALL_EXPRESSIONS, EyeEngine, Expression, SimulatorStateMachine
+from eye_engine_v2 import EyeEngine2
 from monochrome_fb import HEIGHT, WIDTH
+from personality import PersonalityProfile
 from sensor_manager import SensorManager, SensorType, SimulatedSensorProvider
 
 
@@ -33,6 +36,14 @@ class JarvisSimulatorApp:
         self.sensor_manager = SensorManager(
             provider=self.sensor_provider,
             emotion_engine=self.emotion_engine,
+        )
+        self.personality = PersonalityProfile(seed=2026)
+        self.eye_v2 = EyeEngine2()
+        self.behavior_engine = BehaviorEngine(
+            emotion_engine=self.emotion_engine,
+            sensor_manager=self.sensor_manager,
+            personality=self.personality,
+            eye_v2=self.eye_v2,
         )
 
         self.fps_frames = 0
@@ -424,6 +435,8 @@ class JarvisSimulatorApp:
         now_ms = self._now_ms()
         self.emotion_enabled = False
         self.sm.set_expression(expr, now_ms, disable_auto=True)
+        if expr.value in RobotMode.__members__:
+            self.behavior_engine.set_mode(RobotMode(expr.value), now_ms)
         self._highlight_active_button()
 
     def _on_blink(self) -> None:
@@ -462,7 +475,7 @@ class JarvisSimulatorApp:
 
     def _on_toggle_emotion_cfg(self) -> None:
         self.emotion_engine.config.spontaneous_enabled = self.spont_var.get()
-        self.emotion_engine.config.silent_mode = self.silent_var.get()
+        self.behavior_engine.set_quiet_mode(self.silent_var.get(), self._now_ms())
         self._update_emotion_telemetry(self._now_ms())
 
     def _on_reset_emotion_defaults(self) -> None:
@@ -584,11 +597,20 @@ class JarvisSimulatorApp:
         if changed is not None:
             self._highlight_active_button()
         elif self.emotion_enabled and not self.sm.auto_demo:
-            self.sensor_manager.update(now_ms)
-            decision = self.emotion_engine.tick(now_ms)
-            if decision is not None:
-                self.apply_reaction_decision(decision, now_ms)
-            elif self.emotion_engine.current_expression != self.eyes.expr:
+            try:
+                b_dec: BehaviorDecision | None = self.behavior_engine.tick(now_ms)
+            except Exception as exc:
+                b_dec = None
+                self.behavior_engine._record(now_ms, "gui", "TICK", "ERROR", reason=type(exc).__name__)
+            if b_dec is not None and b_dec.expression is not None:
+                if b_dec.expression != self.eyes.expr:
+                    self.eyes.set_expression(b_dec.expression, now_ms=now_ms)
+                if b_dec.gaze_dx is not None and b_dec.gaze_dy is not None:
+                    self.eyes.set_gaze_offset(b_dec.gaze_dx, b_dec.gaze_dy, 1500, now_ms)
+                if b_dec.trigger_blink:
+                    self.eyes.trigger_blink(now_ms)
+                self._highlight_active_button()
+            elif not self.eye_v2.is_sequence_active and self.emotion_engine.current_expression != self.eyes.expr:
                 self.eyes.set_expression(self.emotion_engine.current_expression, now_ms=now_ms)
                 self._highlight_active_button()
 
