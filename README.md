@@ -1,128 +1,105 @@
 # JARVIS LEGO BOT
 
-Assistente vocale da scrivania in italiano costruito con mattoncini LEGO, basato su **ESP32-S3 N16R8**, **Ollama (`qwen2.5:3b`)**, **faster-whisper** e voce personalizzata **Piper Riccardo (Amichetto Vivace)** su PC Windows 11.
+Assistente vocale da scrivania in italiano costruito con mattoncini LEGO, basato su **ESP32-S3-DevKitC-1 N16R8**, riconoscimento wake word locale continuo **«Hey Jarvis»**, animazioni **Eyes 3.0** su OLED I²C e pipeline AI locale su PC Windows 11 (**faster-whisper** + **Ollama `qwen2.5:3b`** + **Piper Riccardo Profilo 08**) via **Voice Bridge** (`WSS` TLS).
 
 ---
 
-## Manuali PDF Illustrati (`docs/manuals/`)
+## Stato del Progetto (FASE 13.8)
 
-Per consultare rapidamente il progetto senza cercare tra i file Markdown tecnici, apri direttamente i **6 manuali A4 in PDF**:
-
-1. [Manuale 1 — Presentazione Generale JARVIS](docs/manuals/01_Presentazione_Generale_JARVIS.pdf)
-2. [Manuale 2 — Elettronica e Collegamenti](docs/manuals/02_Elettronica_e_Collegamenti.pdf)
-3. [Manuale 3 — Costruzione LEGO Companion v2](docs/manuals/03_Costruzione_LEGO_Companion_v2.pdf)
-4. [Manuale 4 — Software e Utilizzo Windows](docs/manuals/04_Software_e_Utilizzo_Windows.pdf)
-5. [Manuale 5 — Collaudo e Manutenzione](docs/manuals/05_Collaudo_e_Manutenzione.pdf)
-6. [Manuale 6 — Personalità, Emozioni e Reazioni (FASE 7)](docs/manuals/06_Personalita_Emozioni_e_Reazioni.pdf)
-
-*(Sorgenti HTML/SVG e script ripetibile `build_manuals.py` in `docs/manual-sources/`).*
-
----
-
-## Stato Avanzamento Progetto
-
-| Fase | Descrizione | Stato |
+| Categoria | Stato | Dettagli |
 |---|---|---|
-| **FASE 1** | Ricerca tecnica, validazione hardware e integrazione decisioni | ✅ Completata e approvata |
-| **FASE 2** | Progettazione esecutiva hardware (schema, pinout, BOM, breadboard, test) | ✅ Completata e approvata (con collaudo termico in FASE 4) |
-| **FASE 3** | Design LEGO e progetto costruttivo (Monoblocco modulare + Base intercambiabile) | ✅ Elaborati pronti in `03-Mechanical-Design/` (in attesa di approvazione) |
-| **FASE 4** | Firmware `jarvis-desk-buddy` (occhi OLED 7 espressioni) + Simulatore Windows | ✅ Compilabile e testato su simulatore |
-| **FASE 5** | Voice & AI su PC Windows 11 (`faster-whisper` + `Ollama qwen2.5:3b` + `Piper Riccardo Amichetto Vivace`) | ✅ Operativo su PC Windows 11 |
-| **FASE 6** | Preparazione elettronica ESP32-S3, architettura audio USB e piano collaudo | ✅ Documentazione pronta (`06-Hardware-Integration/`), in attesa componenti |
-| **FASE 7** | Emotion &amp; Reaction Engine (Personalità C, 14 espressioni OLED, integrato su PC/Simulatore) | ✅ Implementato e consolidato (`ab98924`) |
-| **FASE 8** | Progettazione sensori (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`) + **FASE 8.1 Sensor Lab simulato** | ✅ Progetto e simulatore PC pronti (`06-Hardware-Integration/FASE_8_SENSORY_INTERACTION.md`); hardware da collaudare |
-| **FASE 9.1–9.4** | JARVIS BRAIN 2.0: BehaviorEngine, MemoryEngine (L1–L4), ConversationEngine 2.0, Control Center | ✅ Completate e consolidate su `main` (`dc23494`) |
-| **FASE 9.5** | **Natural Conversation & Personality 2.0** (`conversation_naturalizer.py`, carattere "Amichetto Vivace") | ✅ Completata e collaudata su Windows 11 (hardware ESP32-S3 da collaudare) |
+| **Firmware stabile (`FASE 13.8`)** | ✅ Implementato e collaudato | [jarvis_wifi_voice_client](04-Firmware/arduino-hw-test/jarvis_wifi_voice_client/README.md): wake word locale continuo «Hey Jarvis», `Eyes 3.0`, VAD adattivo, anti-ri-trigger, speaker silenzioso in `IDLE`, `GPIO47`, diagnostica `STAT`, Wi-Fi/WSS. |
+| **Voice Bridge & AI locale** | ✅ Implementato e collaudato | `05-Voice-AI/`: server FastAPI/WSS (`faster-whisper small` + `Ollama qwen2.5:3b` + `Piper it_IT-riccardo-x_low` WSOLA Profilo 08 + Control Center). |
+| **Meccanica LEGO (`Companion Hybrid v2`)** | ✅ Progettata / in costruzione | `03-Mechanical-Design/`: modelli `.mpd`/`.ldr` e istruzioni di montaggio. |
+| **Prototipi & Simulazioni** | 🧪 Sperimentali | `04-Firmware/experiments/` (storici/sperimentali FASE 13.1–13.7), `04-Firmware/wokwi-*`, `04-Firmware/arduino-hw-test/*_hw_test/`. |
+| **PCB Carrier Board v1 & Sensori futuri** | 📋 Progettazione / da collaudare | `JARVIS_CARRIER_BOARD_V1_PRODUZIONE/` (Gerber/BOM di progetto non ancora fabbricati/collaudati), sensori `VL53L0X`/`MPU6050`/`BH1750`/`TTP223`, Base Mobile B2 (`03-Mechanical-Design/05-Mobile-Electronics/`). |
+| **JARVIS Robotics Platform** | 📋 Evoluzione futura | `JARVIS-Robotics-Platform/`: architettura, contratti, profili e frontend in evoluzione (non ancora integrata sul robot). |
+
+### Limiti tecnici attuali
+- La partizione applicativa `app0` su ESP32-S3 (`1.310.720` B) è occupata al **99%** (`1.299.328` B, margine residuo `11.392` B); future espansioni richiederanno una tabella partizioni `Huge APP` (`3 MB` su Flash `16 MB`).
+- I servizi STT, LLM e TTS girano localmente su PC Windows 11 collegato sulla stessa LAN dell'ESP32-S3.
 
 ---
 
-## Indice Documentazione
+## Architettura Hardware e Software
 
-### Documenti Generali, FASE 1 e FASE 9
-- [FASE 1 – Analisi Tecnica Iniziale](docs/FASE_1_Analisi_Tecnica.md)
-- [FASE 1 – Integrazione e Decisioni Definitive](docs/FASE_1_Integrazione_e_Decisioni.md)
-- [FASE 9.0 – Analisi e Progettazione JARVIS BRAIN 2.0](docs/FASE_9_JARVIS_BRAIN_2_0.md)
+```text
+[INMP441 I2S0] ──► Core 0 (AudioCapture: microWakeWord "Hey Jarvis" + Pre-Roll 500ms + VAD)
+                        │
+                        ▼ (WSS TLS /ws/v1/esp32)
+              [PC Windows 11: Voice Bridge]
+               ├── STT: faster-whisper (small)
+               ├── AI : Local Intent / Ollama (qwen2.5:3b)
+               └── TTS: Piper Riccardo (WSOLA Profilo 08)
+                        │
+                        ▼ (PCM16 16kHz → PSRAM)
+[MAX98357A I2S1] ◄── Core 0 (AudioPlayback + zero-flush silenzioso in IDLE)
+[OLED SH1106 I2C] ◄── Core 1 (Eyes 3.0: IDLE / LISTENING / THINKING / SPEAKING)
+[Pulsante GPIO47] ──► Core 1 (Push-to-Talk alternativo + STOP/CANCEL)
+```
 
-### FASE 2 – Hardware Storico (`archive/01-Hardware/`, archiviato — sostituito da `06-Hardware-Integration/` per v1 USB)
-- [Elaborato A – Schema Elettronico, Alimentazione e Protezioni](archive/01-Hardware/01_Schema_Elettronico_e_Alimentazione.md)
-- [Elaborato B – Tabella Pinout Definitiva](archive/01-Hardware/02_Tabella_Pinout_Definitiva.md)
-- [Elaborati C & D – Distinta Componenti (BOM) e Stima Costi](archive/01-Hardware/03_Distinta_Componenti_BOM_e_Costi.md)
-- [Elaborati E, F & G – Montaggio Breadboard, Trasferimento LEGO e Test Pre-Alimentazione](archive/01-Hardware/04_Montaggio_Breadboard_Collaudo_e_Trasferimento_LEGO.md)
-
-### FASE 3 – Progettazione Meccanica Modulare (`03-Mechanical-Design/`)
-- [Indice Cartella `03-Mechanical-Design`](03-Mechanical-Design/README.md)
-- [Elaborato A – Progetto Visivo e Viste (Design Compatto)](03-Mechanical-Design/01_Progetto_Visivo_e_Viste.md)
-- [Elaborato B – Interfaccia Universale, Base B1 e Futura Base B2 (2WD+Caster)](03-Mechanical-Design/02_Progetto_Modulare_e_Mobilita.md)
-- [Elaborato C – Progetto Interno, Ingombri Reali, Acustica e Raffreddamento](03-Mechanical-Design/03_Progetto_Interno_e_Raffreddamento.md)
-- [Elaborato D – Distinta Costruttiva, Base Mobile e Verifiche](03-Mechanical-Design/04_Distinta_Costruttiva_e_Verifiche.md)
-- **Estensione Elettrica Base Mobile B2 (`03-Mechanical-Design/05-Mobile-Electronics/` — progettazione documentale chiusa, prove su banco da eseguire):**
-  - [01 – Architettura Elettrica B2](03-Mechanical-Design/05-Mobile-Electronics/01_Architettura_Elettrica_B2.md)
-  - [02 – Alimentazione, Protezione Stallo INA3221, Termica e Batteria 2S](03-Mechanical-Design/05-Mobile-Electronics/02_Schema_Alimentazione_B2.md)
-  - [03 – Controllo Motori, UART, Anticollisione e Matrice Fail-Safe](03-Mechanical-Design/05-Mobile-Electronics/03_Controllo_Motori_UART_TB6612.md)
-  - [04 – Pinout Connettore JST-XH 6 Pin](03-Mechanical-Design/05-Mobile-Electronics/04_Pinout_Connettore_JST-XH.md)
-  - [05 – BOM Elettrica Preliminare B2](03-Mechanical-Design/05-Mobile-Electronics/05_BOM_Elettrica_B2.md)
-  - [06 – Procedure di Sicurezza, Collaudo e Tabella Approvazione B2](03-Mechanical-Design/05-Mobile-Electronics/06_Procedure_Sicurezza_e_Collaudo.md)
-- Render compatto: [Vista Prospettica Compatta](03-Mechanical-Design/images/jarvis_compact_perspective.jpg)
-
-*(Nota: la precedente bozza Testa+Collo+Busto in `archive/02-LEGO/` e le vecchie iterazioni `06..09` in `archive/legacy-mechanical-design/` sono state archiviate. Il design LEGO definitivo attivo è [Companion Hybrid v2 — Visiera Capsula Arrotondata SNOT](03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md)).*
-
-### FASE 6 & FASE 8.2B-0 – Preparazione Elettronica ESP32-S3, Schemi e Guida al Montaggio (`06-Hardware-Integration/`)
-- [GUIDA_MONTAGGIO_ELETTRONICA.md](06-Hardware-Integration/GUIDA_MONTAGGIO_ELETTRONICA.md) — **Guida illustrata passo per passo al montaggio, verifiche elettriche, collaudo in 6 test e integrazione LEGO `Companion Hybrid v2`** (con schemi SVG in `06-Hardware-Integration/images/`: [Schema Generale](06-Hardware-Integration/images/01_schema_elettrico_generale.svg), [Test 1-3](06-Hardware-Integration/images/02_test_1_2_3_esp32_oled_pulsante.svg), [Test 4-5 Audio](06-Hardware-Integration/images/03_test_4_5_audio_i2s.svg), [Test 6 Sensori](06-Hardware-Integration/images/04_test_6_sensori_i2c_touch.svg), [Esploso LEGO](06-Hardware-Integration/images/05_integrazione_lego_esploso.svg))
-- [HARDWARE_PINOUT.md](06-Hardware-Integration/HARDWARE_PINOUT.md) — Verifica pinout ESP32-S3-DevKitC-1 N16R8 e mappatura completa OLED, INMP441, MAX98357A, Speaker e Pulsante
-- [WIRING_GUIDE.md](06-Hardware-Integration/WIRING_GUIDE.md) — Schema elettronico leggibile e regole di cablaggio su breadboard
-- [AUDIO_ARCHITECTURE.md](06-Hardware-Integration/AUDIO_ARCHITECTURE.md) — Strategia audio bidirezionale su USB-CDC, formati PCM, banda, buffer e interruzioni
-- [USB_PROTOCOL.md](06-Hardware-Integration/USB_PROTOCOL.md) — Protocollo binario multiplexato retrocompatibile con i comandi degli occhi
-- [HARDWARE_TEST_PLAN.md](06-Hardware-Integration/HARDWARE_TEST_PLAN.md) — Piano di collaudo progressivo in 5 test indipendenti
-- [HARDWARE_CHECKLIST.md](06-Hardware-Integration/HARDWARE_CHECKLIST.md) — Checklist elettrica all'arrivo e verifica meccanica per `jarvis_lego_bot_companion_hybrid_v2_visor.mpd`
-- [GITHUB_REPOS_ANALYSIS.md](06-Hardware-Integration/GITHUB_REPOS_ANALYSIS.md) — Analisi tecnica e licenze dei repository GitHub di riferimento (`xiaozhi-esp32`, `xiaozhi-esp32-server`, `Carmoruda/Jarvis`, `deskbuddy`, `blinky-desk-companion`)
+### Componenti elettronici attivi (`ESP32-S3-DevKitC-1 N16R8`)
+- **MCU**: ESP32-S3 N16R8 (`16 MB` Flash, `8 MB` Octal PSRAM)
+- **Display**: OLED 1,3" `128×64` I²C (`SH1106`, `SDA=GPIO41`, `SCL=GPIO42`)
+- **Microfono**: `INMP441` I²S (`I2S_NUM_0`: `WS=GPIO4`, `SCK=GPIO5`, `SD=GPIO6`, `L/R=GND`)
+- **Amplificatore & Speaker**: `MAX98357A` (`I2S_NUM_1`: `BCLK=GPIO15`, `LRC=GPIO16`, `DIN=GPIO7`) + Speaker `4 Ω / 3 W`
+- **Pulsante**: tattile su `GPIO47` (attivo LOW verso GND)
 
 ---
 
-## Architettura di Riferimento
+## Struttura del Repository
 
-### Architettura Attuale (Windows 11 + ESP32-S3, `main`)
-- **Hardware Robot:** ESP32-S3-DevKitC-1 N16R8 + Display OLED 1,3" 128×64 I²C (`SH1106`/`SSD1306`) + Pulsante meccanico (`GPIO 47`) + predisposizione audio I²S (`INMP441`, `MAX98357A`, Speaker 36 mm 4 Ω / 3 W) e sensori (`VL53L0X`, `TTP223`, `MPU6050`, `BH1750`).
-- **Firmware ESP32-S3:** `04-Firmware/jarvis-desk-buddy/` (14 espressioni OLED, protocollo seriale USB-CDC `PING`/`STATUS`/`DIAG`/`STATE`/`LOOK`, stub sensori `FASE 8.2A`).
-- **Voice AI & Simulatore su PC Windows 11:** `05-Voice-AI/` (`faster-whisper` + `Ollama qwen2.5:3b` + voce personalizzata `Piper Riccardo Amichetto Vivace`) + `04-Firmware/jarvis-desk-buddy-sim/` (`EmotionEngine` Personalità C e `Sensor Lab`).
-
-### Architettura Storica (v1 iniziale, FASE 6)
-- **Firmware iniziale di riferimento:** variante di `bread-compact-wifi` da [78/xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) con `GPIO 39/40` disabilitati e comunicazione WebSocket su LAN.
-- **Backend Raspberry Pi 5 (Debian 13 ARM64):** stack Docker isolato *Server-Only* (`xiaozhi-esp32-server:server_latest` ARM64) con ASR (`Vosk`/`Whisper`), TTS (`EdgeTTS`) e bridge di telemetria isolato (`jarvis-sys-bridge` + `docker-socket-proxy` solo `GET`).
-
----
-
-## Avvio JARVIS Control Center & Stato Collaudo Software (Windows 11)
-
-### Avvio rapido
-- **Avvio normale (Voice AI reale: Microfono + faster-whisper + Ollama + Piper):**
-  - Doppio clic su `Start_JARVIS_Control_Center.bat`, oppure da PowerShell:
-    ```powershell
-    & "05-Voice-AI\.venv\Scripts\python.exe" "05-Voice-AI\jarvis_app.py"
-    ```
-  - Per disabilitare le iniziative vocali spontanee in modalità normale:
-    ```powershell
-    & "05-Voice-AI\.venv\Scripts\python.exe" "05-Voice-AI\jarvis_app.py" --no-spontaneous
-    ```
-- **Avvio in modalità Demo leggera (senza STT/Ollama/Piper/spontanee):**
-  ```powershell
-  & "05-Voice-AI\.venv\Scripts\python.exe" "05-Voice-AI\jarvis_app.py" --demo
-  ```
-
-### Stato effettivo del collaudo
-- ✅ **Software Windows 11 collaudato**: Control Center a 8 schede, simulatore OLED fluido, scheda Memoria (L2/L3/L4 con consenso esplicito, ricerca, filtri, modifica/eliminazione), integrazione memoria con `Ollama qwen2.5:3b`, conversazione vocale reale end-to-end (`Microfono` → `faster-whisper` → `Ollama qwen2.5:3b` → `Piper Riccardo`) e **FASE 9.5 — Natural Conversation & Personality 2.0** (collaudo qualitativo utente superato, incluse le prove su tono giocoso, complicità e cambio di registro).
-- ⏳ **Hardware fisico ESP32-S3**: non ancora testato fisicamente; il collaudo su scheda reale e periferiche resta da eseguire.
-
-### FASE 9.5 — Natural Conversation & Personality 2.0
-- **Personalità "Amichetto Vivace"**: compagno robotico naturale in italiano colloquiale, curioso, affettuoso in modo equilibrato e leggermente birichino quando il contesto lo consente, senza affermare sentimenti o bisogni umani reali.
-- **Conversation Naturalizer (`05-Voice-AI/conversation_naturalizer.py`)**: istruzioni dinamiche per turno senza chiamate LLM extra; adatta registro e lunghezza tra conversazione giocosa, richieste tecniche (precisione senza battute fuori luogo), situazioni serie/delicate e richieste brevi, riducendo aperture ripetitive e domande finali forzate.
-- **Slider Personalità (`PersonalityPanel`)**: `Intensità espressiva`, `Curiosità`, `Giocosità`, `Affettuosità`, `Birichineria` e `Frequenza iniziative` aggiornano in tempo reale `PersonalityProfile`, l'area **Anteprima Comportamento** e il tono effettivo delle risposte di Ollama (rispettando anche i profili pacati).
-- **Continuità del dialogo**: gestione coerente di follow-up a breve termine (*"E poi?"*, *"Perché?"*, *"Spiegamelo meglio"*, *"Non ho capito"*, *"Intendevo un'altra cosa"*, *"Torniamo a quello di prima"*) distinta dalla memoria persistente.
-- **Memoria contestuale**: integrazione di preferenze L2 e ricordi confermati L3/L4 con consenso esplicito, isolati come dati non attendibili (`MEMORIA_LOCALE_DATI`) e disabilitabili da Control Center.
-- **Espressività OLED & Piper Riccardo**: mappatura a fine turno sull'elenco chiuso delle 14 espressioni firmware (`IDLE`, `HAPPY`, `CURIOUS`, `THINKING`, `SURPRISED`, `WINK`, `MISCHIEVOUS`, `CONFUSED`, ecc.), pulizia di markdown e tag tecnici prima della sintesi con Piper Riccardo (`SentenceSpeechQueue`), interruzione vocale immediata e rispetto dei limiti sulle iniziative spontanee (max 2/ora, min 20 minuti, Quiet Mode, `--no-spontaneous`).
+- `03-Mechanical-Design/` — Progettazione meccanica LEGO (`Companion Hybrid v2`), istruzioni e studi elettrici Base Mobile B2.
+- `04-Firmware/`
+  - `arduino-hw-test/jarvis_wifi_voice_client/` — **Firmware stabile FASE 13.8** (con `tests/test_fase13_4_logic.py`).
+  - `archive/fase12_27_jarvis_wifi_voice_client/` — Archivio integrale della precedente versione stabile FASE 12.27.
+  - `experiments/` — Prototipi isolati FASE 13 (`fase13-wakeword`, `fase13_3-integrated`).
+  - `jarvis-desk-buddy/` & `jarvis-desk-buddy-sim/` — Firmware OLED/USB storico e simulatore Python `Eyes 2.0/3.0`.
+  - `wokwi-*` — Configurazioni di simulazione Wokwi.
+- `05-Voice-AI/` — **Voice Bridge**, pipeline Whisper/Ollama/Piper, Control Center e test automatici (`backups/` locali esclusi da Git).
+- `06-Hardware-Integration/` — Pinout definitivo, schemi SVG, guida al montaggio e specifiche sensori FASE 8.
+- `JARVIS_CARRIER_BOARD_V1_PRODUZIONE/` — File Gerber, BOM e documentazione PCB Carrier Board v1 (progettazione non ancora prodotta).
+- `JARVIS-Robotics-Platform/` — Documentazione, contratti, profili e frontend per l'evoluzione futura della piattaforma.
+- `docs/` — Manuali PDF illustrati (`docs/manuals/`) e report tecnici di fase (`FASE_1` → `FASE_14`).
+- `archive/` — Elaborati storici archiviati.
 
 ---
 
-## Regole di Progetto
-- Nessuna modifica o interruzione ai servizi esistenti sul Raspberry Pi 5.
-- Nessuna credenziale o API key nei sorgenti (solo variabili d'ambiente / `.env`).
-- Nessuna assunzione non verificata; segnalare sempre eventuali varianti hardware da confermare fisicamente.
+## Compilazione Firmware Stabile (`FASE 13.8`)
+
+1. Copiare `04-Firmware/arduino-hw-test/jarvis_wifi_voice_client/wifi_secrets.example.h` in `wifi_secrets.h` (escluso da Git) e configurare SSID, password, IP/porta LAN del Voice Bridge e token dispositivo.
+2. Dipendenze: core `esp32:esp32` `3.3.13`, `U8g2` (`2.36.19`), `WebSockets` (`2.7.2`), `Chirale_TensorFLowLite-2.0.0` (in `04-Firmware/experiments/fase13-wakeword/libs`).
+3. Compilazione con `arduino-cli`:
+```powershell
+arduino-cli compile --fqbn "esp32:esp32:esp32s3:PSRAM=opi,FlashSize=16M,DebugLevel=none" `
+  --libraries "04-Firmware\experiments\fase13-wakeword\libs" `
+  --libraries "$env:USERPROFILE\Documents\Arduino\libraries" `
+  "04-Firmware\arduino-hw-test\jarvis_wifi_voice_client"
+```
+4. Test logici host:
+```powershell
+python 04-Firmware\arduino-hw-test\jarvis_wifi_voice_client\tests\test_fase13_4_logic.py
+```
+
+---
+
+## Manuali PDF e Documentazione Tecnica
+
+- **Manuali A4 illustrati (`docs/manuals/`)**: [01 Presentazione](docs/manuals/01_Presentazione_Generale_JARVIS.pdf) · [02 Elettronica](docs/manuals/02_Elettronica_e_Collegamenti.pdf) · [03 LEGO](docs/manuals/03_Costruzione_LEGO_Companion_v2.pdf) · [04 Software](docs/manuals/04_Software_e_Utilizzo_Windows.pdf) · [05 Collaudo](docs/manuals/05_Collaudo_e_Manutenzione.pdf) · [06 Personalità](docs/manuals/06_Personalita_Emozioni_e_Reazioni.pdf).
+- **Documenti chiave recenti**:
+  - [FASE 13.8 — Versione Stabile](docs/FASE_13_8_VERSIONE_STABILE.md)
+  - [FASE 13.7 — Collaudo Consolidamento](docs/FASE_13_7_COLLAUDO_CONSOLIDAMENTO.md)
+  - [FASE 14.1 — Audit Repository](docs/FASE_14_1_AUDIT_REPOSITORY.md)
+
+---
+
+## Licenze e Attribuzioni
+
+Vedere [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) per l'elenco completo delle librerie e dei modelli di terze parti (`microWakeWord` / `hey_jarvis` Apache-2.0, `TFLite Micro` Apache-2.0, `arduinoWebSockets` LGPL-2.1, `U8g2` BSD-2-Clause, `faster-whisper` MIT, `Piper` MIT, `Ollama` MIT/Apache-2.0).
+
+---
+
+## Roadmap Futura
+1. Eventuale migrazione tabella partizioni `Huge APP` (`3 MB`) su Flash `16 MB` per superare il limite attuale del `99%` di `app0`.
+2. Produzione e collaudo fisico della Carrier Board PCB v1 e integrazione sensori (`VL53L0X`, `MPU6050`, `BH1750`, `TTP223`).
+3. Evoluzione modulare verso `JARVIS-Robotics-Platform` e Base Mobile B2.

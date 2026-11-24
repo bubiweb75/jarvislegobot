@@ -1,0 +1,57 @@
+{
+  "$schema": "../../schemas/skin.schema.json",
+  "skin_id": "skin-nova-hud-v1",
+  "schema_version": "1.0.0",
+  "name": "NOVA Advanced — Ocular HUD Companion",
+  "description": "Identità futuristica e scientifica, con anelli ottici concentrici e reticolo HUD integrato nell'occhio.",
+  "author": "JARVIS Platform Team",
+  "skin_version": "1.0.0",
+  "target_display": {
+    "type": "monochrome_1bit",
+    "width": 128,
+    "height": 64
+  },
+  "base_geometry": {
+    "width": 38.0,
+    "height": 38.0,
+    "shape_power": 2.0,
+    "taper": 0.0,
+    "corner_radius": 19.0,
+    "spacing_px": 16,
+    "pupil": {
+      "shape": "segmented_quad",
+      "radius": 7.5,
+      "catchlight": "ocular_ring"
+    },
+    "ocular_hud": {
+      "enabled": true,
+      "concentric_rings": true,
+      "scan_lines": true
+    }
+  },
+  "visual_behavior_profile_default": "LIVELY",
+  "expressions": {
+    "NEUTRAL": { "render_mode": "parametric", "width": 38.0, "height": 38.0, "shape_power": 2.0, "corner_radius": 19.0, "pupil_radius": 7.5 },
+    "HAPPY": { "render_mode": "crescent", "width": 36.0, "height": 24.0, "pupil_radius": 0.0 },
+    "CURIOUS": { "render_mode": "parametric", "width": 38.0, "height": 38.0, "left": { "width": 32.0, "height": 32.0 }, "right": { "width": 42.0, "height": 42.0 } },
+    "SLEEPY": { "render_mode": "parametric", "width": 36.0, "height": 28.0, "upper_lid_l": 12.0, "upper_lid_r": 12.0, "pupil_radius": 4.0 },
+    "LISTENING": { "render_mode": "segmented_hud", "width": 40.0, "height": 44.0, "pupil_radius": 9.0 },
+    "THINKING": { "render_mode": "parametric", "width": 36.0, "height": 32.0, "offset_x": 4.0, "offset_y": -3.0, "pupil_dx": 5.0, "pupil_dy": -3.0, "pupil_radius": 6.0 },
+    "SPEAKING": { "render_mode": "parametric", "width": 38.0, "height": 36.0, "lower_lid": 4.0, "lower_arch": 5.0, "pupil_radius": 7.0 },
+    "SURPRISED": { "render_mode": "parametric", "width": 42.0, "height": 46.0, "pupil_radius": 4.0, "transition_boost": 2.0 },
+    "SHY": { "render_mode": "parametric", "width": 34.0, "height": 30.0, "offset_x": -3.0, "offset_y": 3.0, "pupil_dx": -4.0, "pupil_dy": 2.0, "pupil_radius": 6.0 },
+    "LOVE": { "render_mode": "heart", "width": 34.0, "height": 34.0, "pupil_radius": 0.0 },
+    "WINK": { "render_mode": "parametric", "width": 38.0, "height": 38.0, "left": { "width": 38.0, "height": 38.0 }, "right": { "render_mode": "crescent", "width": 36.0, "height": 26.0 } },
+    "CONFUSED": { "render_mode": "parametric", "width": 36.0, "height": 36.0, "left": { "width": 32.0, "height": 30.0 }, "right": { "width": 40.0, "height": 40.0 } },
+    "MISCHIEVOUS": { "render_mode": "parametric", "width": 38.0, "height": 32.0, "upper_lid_l": 4.0, "upper_lid_r": 12.0 },
+    "SLEEPING": { "render_mode": "sleeping_lash", "width": 34.0, "height": 22.0, "pupil_radius": 0.0 }
+  },
+  "motion": {
+    "natural_gaze": { "enabled": true, "micro_saccades_enabled": true, "max_offset_x": 12.0, "max_offset_y": 6.0, "suppress_in_listening": true },
+    "advanced_blink": { "enabled": true, "close_rate": 22.0, "open_rate": 18.0, "hold_closed_ms": 35, "double_blink_chance_pct": 25 },
+    "interpolation": { "algorithm": "exponential_decay", "base_decay_rate": 18.0 }
+  },
+  "voice_reactivity": { "enabled": true, "target_ocular_element": "pupil_dilation", "max_deviation_px": 3.0, "smoothing_factor": 0.60 },
+  "resource_limits": { "max_framebuffer_bytes": 1024, "max_render_time_us": 3200 },
+  "fallback": { "fallback_skin_id": "skin-jarvis-original-v3" }
+}

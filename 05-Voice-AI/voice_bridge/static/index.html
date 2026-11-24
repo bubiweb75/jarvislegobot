@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JARVIS Voice Lab</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="header card">
+      <div class="brand">
+        <div class="orb" id="orb-indicator"></div>
+        <div>
+          <h1>JARVIS Voice Lab</h1>
+          <p class="subtitle">Collaudo Locale Pipeline Vocale (FastAPI · Whisper · AI Router · Piper)</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-muted" id="backend-badge">Backend: verifica...</span>
+        <span class="badge badge-muted" id="provider-badge">Provider: —</span>
+        <span class="badge badge-state" id="state-badge">IDLE</span>
+      </div>
+    </header>
+
+    <section class="card auth-bar" id="auth-section">
+      <div class="auth-row">
+        <label for="token-input">Sessione locale (Token Bridge):</label>
+        <input type="password" id="token-input" placeholder="Inserisci JARVIS_BRIDGE_TOKEN" autocomplete="off" />
+        <button id="btn-login" class="btn btn-primary">Sblocca sessione</button>
+        <button id="btn-logout" class="btn btn-ghost" hidden>Blocca</button>
+        <span class="auth-status" id="auth-status">Non autenticato</span>
+      </div>
+    </section>
+
+    <main class="grid">
+      <section class="card mic-panel">
+        <div class="panel-head">
+          <h2>Microfono</h2>
+          <div class="rec-pill" id="rec-pill" hidden>
+            <span class="rec-dot"></span> REC
+          </div>
+        </div>
+        <div class="mic-controls">
+          <button id="btn-start" class="btn btn-primary" disabled>Avvia registrazione</button>
+          <button id="btn-stop" class="btn btn-danger" disabled>Ferma registrazione</button>
+          <button id="btn-cancel" class="btn btn-ghost" disabled>Annulla</button>
+        </div>
+        <div class="meter-wrap">
+          <div class="meter-meta">
+            <span>Timer: <strong id="rec-timer">0.0 s</strong> / 5.0 s</span>
+            <span>Livello: <strong id="level-pct">0%</strong></span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="level-bar"></div>
+          </div>
+        </div>
+        <div class="mic-options" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 8px 0; font-size: 0.85rem;">
+          <label><input type="checkbox" id="opt-echo" checked /> Echo cancellation</label>
+          <label><input type="checkbox" id="opt-noise" checked /> Noise suppression</label>
+          <label><input type="checkbox" id="opt-agc" checked /> Auto gain control</label>
+          <label for="gain-select">Guadagno:
+            <select id="gain-select">
+              <option value="1" selected>Originale (1×)</option>
+              <option value="2">Guadagno 2×</option>
+              <option value="3">Guadagno 3×</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint" style="font-size: 0.8rem; opacity: 0.85;">Nota: l'amplificazione software aumenta anche il rumore di fondo e non garantisce un miglioramento STT.</p>
+        <p class="hint" id="mic-hint">Autorizza la sessione e premi "Avvia registrazione" per parlare (max 5 s).</p>
+        <div class="player-wrap" style="margin-top: 12px;">
+          <label for="original-audio-player" style="display: block; font-size: 0.85rem; margin-bottom: 4px;">
+            Ascolta registrazione originale (WAV inviato a Whisper):
+          </label>
+          <audio id="original-audio-player" controls preload="auto"></audio>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Trascrizione (Whisper)</h2>
+        <div class="text-box" id="transcript-box">—</div>
+      </section>
+
+      <section class="card">
+        <div class="panel-head">
+          <h2>Risposta JARVIS</h2>
+          <span class="badge badge-muted" id="tts-status-badge">TTS: in attesa</span>
+        </div>
+        <div class="text-box" id="reply-box">—</div>
+        <div class="player-wrap">
+          <audio id="audio-player" controls preload="auto"></audio>
+          <div class="player-actions">
+            <button id="btn-replay" class="btn btn-secondary" disabled>Riascolta</button>
+            <button id="btn-stop-audio" class="btn btn-ghost" disabled>Ferma riproduzione</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Diagnostica</h2>
+        <dl class="diag-grid">
+          <div><dt>Request ID</dt><dd id="diag-req-id">—</dd></div>
+          <div><dt>Provider AI</dt><dd id="diag-provider">—</dd></div>
+          <div><dt>Durata reg.</dt><dd id="diag-dur">—</dd></div>
+          <div><dt>Sample rate</dt><dd id="diag-fmt-in">—</dd></div>
+          <div><dt>RMS / Picco</dt><dd id="diag-rms-peak">—</dd></div>
+          <div><dt>Clipping</dt><dd id="diag-clipping">—</dd></div>
+          <div><dt>Guadagno (ric. / eff.)</dt><dd id="diag-gain">—</dd></div>
+          <div><dt>Dimensione WAV</dt><dd id="diag-wav-size">—</dd></div>
+          <div><dt>Formato ricevuto</dt><dd id="diag-fmt-out">—</dd></div>
+          <div><dt>Tempo STT</dt><dd id="diag-stt-ms">—</dd></div>
+          <div><dt>Tempo AI</dt><dd id="diag-ai-ms">—</dd></div>
+          <div><dt>Tempo TTS</dt><dd id="diag-tts-ms">—</dd></div>
+          <div><dt>Tempo Totale</dt><dd id="diag-total-ms">—</dd></div>
+          <div class="diag-full"><dt>Fuso orario</dt><dd id="diag-tz">—</dd></div>
+          <div class="diag-full"><dt>Errore</dt><dd id="diag-error" class="err-text">Nessuno</dd></div>
+        </dl>
+        <div style="margin-top: 10px; font-size: 0.85rem;">
+          <label for="stt-ref-input">Testo di riferimento (opzionale per WER, non inviato al modello):</label>
+          <input type="text" id="stt-ref-input" value="Ciao Jarvis, che ore sono?" style="width: 100%; margin-top: 4px; padding: 6px;" />
+        </div>
+        <div class="player-actions" style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btn-compare-stt" class="btn btn-secondary" disabled>Confronta STT (A–E)</button>
+          <button id="btn-compare-gain" class="btn btn-secondary" disabled>Confronta guadagni (1× / 2× / 3×)</button>
+          <button id="btn-compare-models" class="btn btn-secondary" disabled>Confronta Whisper Base / Small</button>
+        </div>
+        <div id="stt-compare-box" class="text-box" style="margin-top: 8px; display: none; font-size: 0.85rem;"></div>
+        <div id="gain-compare-box" style="margin-top: 10px; display: none; font-size: 0.85rem;"></div>
+        <div id="model-compare-box" style="margin-top: 10px; display: none; font-size: 0.85rem;"></div>
+      </section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schemas/wakeword.schema.json",
+  "wakeword_id": "wakeword-hey-jarvis-v2",
+  "schema_version": "1.0.0",
+  "phrase": "Hey Jarvis",
+  "language": "en",
+  "engine": "microWakeWord",
+  "model_filename": "hey_jarvis_int8.tflite",
+  "model_version": "2.1.0",
+  "format": "tflite_int8",
+  "size_bytes": 43200,
+  "checksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "license": "Apache-2.0",
+  "status": "ACTIVE",
+  "detection_parameters": {
+    "threshold": 0.75,
+    "cooldown_ms": 500,
+    "anti_retrigger_holdoff_ms": 300,
+    "barge_in_suppression": true
+  },
+  "resource_requirements": {
+    "flash_bytes": 43200,
+    "ram_tensor_arena_bytes": 32768,
+    "cpu_core": 1
+  },
+  "fallback_mechanism": {
+    "ptt_button_always_active": true
+  }
+}

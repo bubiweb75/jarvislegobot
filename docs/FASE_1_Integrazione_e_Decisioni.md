@@ -93,7 +93,7 @@ Mappatura pulita, priva di conflitti con Octal PSRAM (`GPIO 35–37`), USB nativ
 ```text
 [ ESP32-S3 N16R8 (xiaozhi-esp32) ]
         │
-        │  WebSocket (LAN: ws://192.168.178.93:8000/xiaozhi/v1/)
+        │  WebSocket (LAN: ws://<LAN_IP>:8000/xiaozhi/v1/)
         ▼
 ┌────────────────────────────────────────────────────────────────────┐
 │ Raspberry Pi 5 (Debian 13 ARM64) – Stack Portainer "jarvis"       │

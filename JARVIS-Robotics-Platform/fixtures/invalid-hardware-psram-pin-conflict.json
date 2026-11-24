@@ -1,0 +1,63 @@
+{
+  "$schema": "../schemas/hardware.schema.json",
+  "hardware_profile_id": "hw-invalid-pin-conflict-v1",
+  "schema_version": "1.0.0",
+  "name": "Invalid Hardware Pin Conflict",
+  "description": "Fixture negativa: assegna il pin SDA a GPIO 35 che appartiene al bus SPI Octal PSRAM/Flash riservato.",
+  "revision": "V1.0",
+  "mcu": {
+    "model": "ESP32-S3-WROOM-1-N16R8",
+    "flash_bytes": 16777216,
+    "psram_bytes": 8388608,
+    "clock_mhz": 240
+  },
+  "display": {
+    "type": "SH1106",
+    "width": 128,
+    "height": 64,
+    "color_depth": "monochrome_1bit",
+    "bus": "I2C0",
+    "sda_gpio": 35,
+    "scl_gpio": 22,
+    "clock_hz": 400000,
+    "i2c_addr_7bit": 60
+  },
+  "audio_input": {
+    "type": "INMP441",
+    "bus": "I2S0",
+    "ws_gpio": 4,
+    "sck_gpio": 5,
+    "sd_gpio": 6,
+    "sample_rate_hz": 16000
+  },
+  "audio_output": {
+    "type": "MAX98357A",
+    "bus": "I2S1",
+    "din_gpio": 7,
+    "bclk_gpio": 15,
+    "lrc_gpio": 16,
+    "speaker_impedance_ohm": 4,
+    "speaker_max_watts": 3.0
+  },
+  "user_inputs": {
+    "ptt_button_gpio": 47,
+    "ptt_active_level": "LOW",
+    "touch_sensor_gpio": 14,
+    "touch_active_level": "HIGH"
+  },
+  "mobility": {
+    "enabled": false
+  },
+  "power": {
+    "type": "USB_5V",
+    "nominal_voltage_v": 5.0,
+    "min_safe_voltage_v": 4.5
+  },
+  "reserved_pins": [0, 3, 19, 20, 35, 36, 37, 38, 43, 44, 45, 46, 48],
+  "capabilities": [
+    "DISPLAY_MONO_128X64",
+    "AUDIO_INPUT_I2S",
+    "AUDIO_OUTPUT_I2S",
+    "PTT"
+  ]
+}

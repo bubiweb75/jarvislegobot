@@ -1,0 +1,22 @@
+{
+  "$schema": "../schemas/package.schema.json",
+  "package_id": "pkg-invalid-checksum-v1",
+  "package_type": "SKIN_PACKAGE",
+  "format_version": "1.0.0",
+  "created_at": "2026-11-24T18:00:00Z",
+  "author": "Tester",
+  "description": "Fixture negativa: sha256 non conforme alla specifica (stringa non valida con caratteri non esadecimali).",
+  "entrypoint_file": "skin.json",
+  "assets": [
+    {
+      "filename": "skin.json",
+      "size_bytes": 1024,
+      "sha256": "INVALID_CHECKSUM_NOT_64_HEX_CHARS",
+      "content_type": "application/json"
+    }
+  ],
+  "security_limits": {
+    "max_extracted_bytes": 1048576,
+    "max_compression_ratio": 5.0
+  }
+}

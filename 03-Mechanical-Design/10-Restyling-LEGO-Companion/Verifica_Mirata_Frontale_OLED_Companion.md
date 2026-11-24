@@ -1,8 +1,8 @@
 # Verifica Mirata del Frontale — Simulazione OLED 1,3" e Cornice LEGO Arrotondata
 
 **Data:** 2026-11-14  
-**Modello esaminato (NON modificato):** [jarvis_lego_bot_companion_hybrid.mpd](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/10-Restyling-LEGO-Companion/jarvis_lego_bot_companion_hybrid.mpd) (`122` pezzi LEGO)  
-**Tavola comparativa a 4 viste + sezione quotata:** [04_verifica_frontale_oled_confronto.svg](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/10-Restyling-LEGO-Companion/images/04_verifica_frontale_oled_confronto.svg)
+**Modello esaminato (NON modificato):** [jarvis_lego_bot_companion_hybrid.mpd](03-Mechanical-Design/10-Restyling-LEGO-Companion/jarvis_lego_bot_companion_hybrid.mpd) (`122` pezzi LEGO)  
+**Tavola comparativa a 4 viste + sezione quotata:** [04_verifica_frontale_oled_confronto.svg](03-Mechanical-Design/10-Restyling-LEGO-Companion/images/04_verifica_frontale_oled_confronto.svg)
 
 ---
 

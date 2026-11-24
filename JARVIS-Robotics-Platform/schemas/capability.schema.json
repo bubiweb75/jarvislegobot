@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/capability.schema.json",
+  "title": "JARVIS Robotics Platform — Capability Model Schema",
+  "description": "Schema formale per il catalogo e la negoziazione delle capability hardware e software dei dispositivi.",
+  "type": "object",
+  "required": ["schema_version", "capabilities"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "category", "description", "state"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "common.schema.json#/$defs/capability_name"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["DISPLAY", "AUDIO", "INPUT", "WAKEWORD", "SKIN", "MOBILITY", "SYSTEM"]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "state": {
+            "type": "string",
+            "enum": ["DESIGNED", "COMPILED", "DETECTED", "ENABLED", "VALIDATED"],
+            "description": "Stato di verifica della capability sul dispositivo target."
+          },
+          "dependencies": {
+            "type": "array",
+            "items": { "$ref": "common.schema.json#/$defs/capability_name" }
+          },
+          "conflicts": {
+            "type": "array",
+            "items": { "$ref": "common.schema.json#/$defs/capability_name" }
+          }
+        }
+      }
+    }
+  }
+}

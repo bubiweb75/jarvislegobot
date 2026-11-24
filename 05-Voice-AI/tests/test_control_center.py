@@ -219,8 +219,13 @@ class TestControlCenter(unittest.TestCase):
             self.assertEqual(self.app.sim.eyes.expr, expr)
 
         self.app.simulator_panel.look_at(8, -4)
-        self.assertEqual(self.app.sim.eyes.left.target_x, self.app.sim.eyes.left.base_x + 8)
-        self.assertEqual(self.app.sim.eyes.left.target_y, self.app.sim.eyes.left.base_y - 4)
+        self.assertAlmostEqual(
+            self.app.sim.eyes.left.target_x + self.app.sim.eyes.left.target_pupil_dx,
+            self.app.sim.eyes.left.base_x + 8,
+            places=5,
+        )
+        self.assertAlmostEqual(self.app.sim.eyes.left.target_y, self.app.sim.eyes.left.base_y - 1.6, places=5)
+        self.assertAlmostEqual(self.app.sim.eyes.left.target_pupil_dy, -1.8, places=5)
         self.app.simulator_panel.trigger_blink()
         self.assertNotEqual(self.app.sim.eyes.blink_phase, "OPEN")
 

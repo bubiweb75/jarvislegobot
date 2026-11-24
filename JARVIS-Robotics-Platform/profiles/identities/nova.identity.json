@@ -1,0 +1,60 @@
+{
+  "$schema": "../../schemas/identity.schema.json",
+  "identity_id": "identity-nova-hud-v1",
+  "schema_version": "1.0.0",
+  "name": "NOVA",
+  "description": "Interfaccia scientifica, analitica, ad alta precisione con visualizzazione squadrata stile HUD.",
+  "author": "JARVIS Platform Team",
+  "identity_version": "1.0.0",
+  "language": "it",
+  "skin_ref": {
+    "skin_id": "skin-nova-hud-v1",
+    "package_filename": "nova-hud.jarvis-skin"
+  },
+  "voice_ref": {
+    "voice_id": "voice-piper-riccardo-v1",
+    "provider": "piper",
+    "speed": 1.1,
+    "pitch": 0.0,
+    "volume": 85
+  },
+  "wakeword_ref": {
+    "model_id": "wakeword-hey-nova-v1",
+    "phrase": "Hey Nova",
+    "detection_threshold": 0.80
+  },
+  "personality_ref": {
+    "personality_id": "personality-nova-analytical-v1"
+  },
+  "visual_behavior_profile": "CALM",
+  "greetings": {
+    "presentation_phrase": "Inizializzazione completata. Sistema NOVA pronto per l'elaborazione dei parametri richiesti.",
+    "welcome_phrases": [
+      "Sistemi diagnostici nominali. In attesa di input.",
+      "Connessione attiva. Qual è l'analisi richiesta?",
+      "Pronto per l'esecuzione dei comandi."
+    ]
+  },
+  "sound_effects": {
+    "enabled": false
+  },
+  "required_capabilities": [
+    "DISPLAY_MONO_128X64",
+    "AUDIO_INPUT_I2S",
+    "AUDIO_OUTPUT_I2S",
+    "PTT",
+    "LOCAL_WAKEWORD",
+    "LOCAL_INTENTS"
+  ],
+  "optional_capabilities": [
+    "BATTERY_TELEMETRY"
+  ],
+  "fallback": {
+    "fallback_identity_id": "identity-jarvis-original-v3"
+  },
+  "metadata": {
+    "created_at": "2026-11-24T18:00:00Z",
+    "updated_at": "2026-11-24T18:00:00Z",
+    "tags": ["official", "analytical", "hud", "technical"]
+  }
+}

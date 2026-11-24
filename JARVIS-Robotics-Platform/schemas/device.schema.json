@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/device.schema.json",
+  "title": "JARVIS Robotics Platform — Device Configuration Schema",
+  "description": "Schema formale per lo stato, telemetria e configurazione del dispositivo fisico (separato dall'identità logica).",
+  "type": "object",
+  "required": [
+    "device_id",
+    "schema_version",
+    "user_label",
+    "mdns_hostname",
+    "hardware_profile_id",
+    "active_identity_id",
+    "firmware_version",
+    "protocol_version",
+    "detected_capabilities",
+    "configuration",
+    "pairing_status",
+    "connection_status",
+    "telemetry"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "device_id": {
+      "$ref": "common.schema.json#/$defs/device_id"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "user_label": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 64,
+      "description": "Nome visibile assegnato dall'utente al robot (es. JARVIS Desk, Eva Salotto)"
+    },
+    "mdns_hostname": {
+      "type": "string",
+      "pattern": "^jarvis-[a-z0-9_-]+\\.local$",
+      "description": "Hostname locale univoco per evitare collisioni sulla LAN"
+    },
+    "hardware_profile_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "active_identity_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "firmware_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+(\\.[0-9]+)?$"
+    },
+    "detected_capabilities": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/capability_name" },
+      "uniqueItems": true
+    },
+    "configuration": {
+      "type": "object",
+      "required": [
+        "desired_identity_id",
+        "applied_identity_id",
+        "last_known_good_identity_id",
+        "config_revision",
+        "safe_apply_deferred"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "desired_identity_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "applied_identity_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "last_known_good_identity_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "config_revision": { "type": "integer", "minimum": 1 },
+        "safe_apply_deferred": {
+          "type": "boolean",
+          "description": "Se true, applica la nuova configurazione solo quando il robot torna in IDLE."
+        }
+      }
+    },
+    "pairing_status": {
+      "type": "string",
+      "enum": ["UNPAIRED", "PAIRING_PENDING", "PAIRED", "BLOCKED"]
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": ["OFFLINE", "CONNECTED_IDLE", "RECORDING", "SPEAKING", "SAFE_MODE"]
+    },
+    "telemetry": {
+      "type": "object",
+      "required": ["last_seen", "free_heap_bytes", "fps_measured"],
+      "additionalProperties": false,
+      "properties": {
+        "last_seen": { "$ref": "common.schema.json#/$defs/iso_date_utc" },
+        "ip_address": {
+          "type": "string",
+          "pattern": "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
+        },
+        "rssi_dbm": { "type": "integer", "minimum": -100, "maximum": 0 },
+        "battery_mv": { "type": "integer", "minimum": 0, "maximum": 9000 },
+        "battery_pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "free_heap_bytes": { "type": "integer", "minimum": 0 },
+        "min_free_heap_bytes": { "type": "integer", "minimum": 0 },
+        "fps_measured": { "type": "number", "minimum": 0.0, "maximum": 60.0 },
+        "dropped_frames": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

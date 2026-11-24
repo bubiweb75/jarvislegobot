@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/common.schema.json",
+  "title": "JARVIS Robotics Platform — Common Types and Definitions",
+  "description": "Definizioni condivise per identificativi, versionamento semantico, timestamp UTC e metadati.",
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "description": "Versione semantica nel formato MAJOR.MINOR.PATCH (es. 1.0.0)",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "identifier": {
+      "type": "string",
+      "description": "Identificativo alfanumerico normalizzato in formato kebab-case o snake_case",
+      "pattern": "^[a-z0-9][a-z0-9_-]{2,63}$",
+      "minLength": 3,
+      "maxLength": 64
+    },
+    "device_id": {
+      "type": "string",
+      "description": "Device ID univoco e immutabile del dispositivo fisico (es. rob-esp32s3-288485870588)",
+      "pattern": "^rob-[a-z0-9]+-[0-9a-f]{12}$"
+    },
+    "sha256": {
+      "type": "string",
+      "description": "Hash crittografico SHA-256 esadecimale a 64 caratteri",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "iso_date_utc": {
+      "type": "string",
+      "description": "Data e ora in formato ISO-8601 UTC (es. 2026-11-24T18:00:00Z)",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
+    },
+    "visual_profile": {
+      "type": "string",
+      "description": "Profilo comportamentale visivo per dinamica degli occhi Eyes 3.0",
+      "enum": ["CALM", "LIVELY", "PLAYFUL"]
+    },
+    "expression_name": {
+      "type": "string",
+      "description": "Le 14 espressioni oculari supportate nativamente da Eyes 3.0",
+      "enum": [
+        "NEUTRAL",
+        "HAPPY",
+        "CURIOUS",
+        "SLEEPY",
+        "LISTENING",
+        "THINKING",
+        "SPEAKING",
+        "SURPRISED",
+        "SHY",
+        "LOVE",
+        "WINK",
+        "CONFUSED",
+        "MISCHIEVOUS",
+        "SLEEPING"
+      ]
+    },
+    "micro_expression_name": {
+      "type": "string",
+      "description": "Le 5 micro-espressioni contestuali spontanee non distruttive",
+      "enum": [
+        "BrowRaise",
+        "SideGlance",
+        "QuickWink",
+        "EyeSmile",
+        "PupilPulse"
+      ]
+    },
+    "operational_state": {
+      "type": "string",
+      "description": "Stati operativi della macchina a stati unificata JARVIS Core",
+      "enum": [
+        "IDLE",
+        "WIFI_CONNECTING",
+        "WIFI_CONNECTED",
+        "RECORDING",
+        "UPLOADING",
+        "PROCESSING",
+        "RECEIVING",
+        "PLAYING",
+        "SLEEPING",
+        "ERROR",
+        "CANCELLED"
+      ]
+    },
+    "wakeword_status": {
+      "type": "string",
+      "description": "Stato formale del modello acustico wake word all'interno del catalogo",
+      "enum": [
+        "DESIRED",
+        "UNAVAILABLE",
+        "AVAILABLE",
+        "COMPATIBLE",
+        "INSTALLED",
+        "VALIDATED",
+        "ACTIVE"
+      ]
+    },
+    "capability_name": {
+      "type": "string",
+      "description": "Identificativo formale di una capability hardware o software",
+      "enum": [
+        "DISPLAY_MONO_128X64",
+        "AUDIO_INPUT_I2S",
+        "AUDIO_OUTPUT_I2S",
+        "TOUCH_SINGLE",
+        "TOUCH_DOUBLE",
+        "TOUCH_LONG",
+        "PTT",
+        "LOCAL_WAKEWORD",
+        "RUNTIME_SKIN",
+        "RUNTIME_VOICE",
+        "BATTERY_TELEMETRY",
+        "MOTOR_CONTROL",
+        "CLIFF_DETECTION",
+        "OTA_UPDATE",
+        "LOCAL_INTENTS"
+      ]
+    }
+  }
+}

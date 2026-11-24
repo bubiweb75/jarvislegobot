@@ -72,8 +72,12 @@ def render_7_expressions_svg(out_path: Path) -> None:
 
 
 if __name__ == "__main__":
+    import os
     artifact_svg = Path(
-        r"C:\Users\bcava\.gemini\antigravity\brain\cf311581-f944-46c2-aacc-d93a969624d1\jarvis_7_expressions_preview.svg"
+        os.environ.get(
+            "JARVIS_PREVIEW_OUT",
+            Path(__file__).resolve().parent / "jarvis_7_expressions_preview.svg",
+        )
     )
     render_7_expressions_svg(artifact_svg)
     print(f"Generated {artifact_svg}")

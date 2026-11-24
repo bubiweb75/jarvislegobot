@@ -1,0 +1,24 @@
+{
+  "$schema": "../schemas/wakeword.schema.json",
+  "wakeword_id": "wakeword-invalid-unverified-active-v1",
+  "schema_version": "1.0.0",
+  "phrase": "Hey Falso",
+  "language": "it",
+  "engine": "microWakeWord",
+  "format": "tflite_int8",
+  "status": "ACTIVE",
+  "detection_parameters": {
+    "threshold": 0.75,
+    "cooldown_ms": 500,
+    "anti_retrigger_holdoff_ms": 300,
+    "barge_in_suppression": true
+  },
+  "resource_requirements": {
+    "flash_bytes": 45000,
+    "ram_tensor_arena_bytes": 32768,
+    "cpu_core": 1
+  },
+  "fallback_mechanism": {
+    "ptt_button_always_active": true
+  }
+}

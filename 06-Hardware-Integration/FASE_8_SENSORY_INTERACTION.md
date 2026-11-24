@@ -87,7 +87,7 @@ flowchart LR
 
 ## 5. Integrazione Meccanica (`Companion Hybrid v2`) e Riutilizzo Base Mobile
 
-Riferimento: [Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md) (`10×10 stud` corpo removibile, base B1 `12×12 stud`).
+Riferimento: [Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md](03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md) (`10×10 stud` corpo removibile, base B1 `12×12 stud`).
 
 - **VL53L0X (Frontale):** posizionamento sotto la soglia della visiera (`L1` centrale sostituendo temporaneamente il `3010` 1×4 con due `3005` 1×1 ai lati e una finestra centrale `2×1` per l'ottica IR) — modifica 100% reversibile.
   - **Riutilizzo su futura Base Mobile 2WD (B2):** utilizzabile come rilevatore di prossimità frontale a corto raggio, **non** sufficiente da solo per l'evitamento sicuro completo degli ostacoli (cono stretto ~25°, non vede ostacoli laterali o bassi rispetto al telaio; in B2 servirà affiancarlo a sensori laterali/bumper).
@@ -164,7 +164,7 @@ Prima dell'arrivo dei componenti, `simulator_gui.py` (e quindi anche `jarvis_app
 
 ## 10. Implementazione FASE 8.1 — `SensorManager` e Sensor Lab (PC/Simulatore)
 
-- **Modulo implementato:** [sensor_manager.py](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy-sim/sensor_manager.py) (`SensorReading`, `SensorProvider`, `SimulatedSensorProvider`, `HardwareSensorProviderStub`, `SensorConfig`, `SensorManager`).
+- **Modulo implementato:** [sensor_manager.py](04-Firmware/jarvis-desk-buddy-sim/sensor_manager.py) (`SensorReading`, `SensorProvider`, `SimulatedSensorProvider`, `HardwareSensorProviderStub`, `SensorConfig`, `SensorManager`).
 - **Eventi supportati → `EmotionEngine`:**
   - `VL53L0X`: `PROXIMITY_NEAR` (`PROXIMITY_APPROACH`), `PROXIMITY_LEFT` (`PROXIMITY_LEAVE`).
   - `TTP223`: `TOUCH_SHORT` (`SHY`), `TOUCH_LONG` (`LOVE`), `TOUCH_MULTI` (`HAPPY` / `MISCHIEVOUS`).

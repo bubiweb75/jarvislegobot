@@ -1,6 +1,6 @@
 import os, struct, math
 
-proto_dir = r"c:\Users\bcava\Desktop\Progetti\JARVIS LEGO BOT\03-Mechanical-Design\07-Mini-Cube-Redesign\01-OLED-Support-Prototype"
+proto_dir = os.path.dirname(os.path.abspath(__file__))
 stl_dir = os.path.join(proto_dir, "stl_prototipi_non_validati")
 img_dir = os.path.join(proto_dir, "images")
 os.makedirs(stl_dir, exist_ok=True)

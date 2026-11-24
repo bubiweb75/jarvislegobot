@@ -18,7 +18,7 @@ Modulo conversazionale vocale e testuale integrato con il simulatore OLED 128×6
 Doppio clic su `run_jarvis.bat` oppure da PowerShell:
 
 ```powershell
-cd "c:\Users\bcava\Desktop\Progetti\JARVIS LEGO BOT\05-Voice-AI"
+cd "05-Voice-AI"
 python jarvis_app.py
 ```
 
@@ -36,6 +36,6 @@ python jarvis_app.py
 ## Test automatici
 
 ```powershell
-cd "c:\Users\bcava\Desktop\Progetti\JARVIS LEGO BOT\05-Voice-AI"
+cd "05-Voice-AI"
 python -m unittest discover -s tests -v
 ```

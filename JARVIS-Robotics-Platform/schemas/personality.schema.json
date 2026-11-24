@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/personality.schema.json",
+  "title": "JARVIS Robotics Platform — Personality Profile Schema",
+  "description": "Schema formale per i profili di personalità, prompt di sistema LLM e stili conversazionali.",
+  "type": "object",
+  "required": [
+    "personality_id",
+    "schema_version",
+    "name",
+    "description",
+    "language",
+    "role_name",
+    "system_prompt",
+    "presentation_phrase",
+    "welcome_phrases",
+    "sliders",
+    "local_intents_templates",
+    "visual_behavior_profile",
+    "memory_policy",
+    "allowed_capabilities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "personality_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "language": {
+      "type": "string",
+      "enum": ["it", "en"]
+    },
+    "role_name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100
+    },
+    "system_prompt": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 8000,
+      "description": "Istruzioni di sistema per il modello linguistico. Non ha autorità su hardware o sicurezza."
+    },
+    "presentation_phrase": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 200
+    },
+    "welcome_phrases": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 3, "maxLength": 200 },
+      "minItems": 1,
+      "maxItems": 10
+    },
+    "sliders": {
+      "type": "object",
+      "required": ["formality", "verbosity", "humor", "empathy", "curiosity"],
+      "additionalProperties": false,
+      "properties": {
+        "formality": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "verbosity": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "humor": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "empathy": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "curiosity": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+      }
+    },
+    "local_intents_templates": {
+      "type": "object",
+      "required": ["clock", "volume_change", "status_query", "cancel"],
+      "additionalProperties": false,
+      "properties": {
+        "clock": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "volume_change": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "status_query": { "type": "string", "minLength": 3, "maxLength": 200 },
+        "cancel": { "type": "string", "minLength": 3, "maxLength": 200 }
+      }
+    },
+    "visual_behavior_profile": {
+      "$ref": "common.schema.json#/$defs/visual_profile"
+    },
+    "memory_policy": {
+      "type": "object",
+      "required": ["save_episodic", "extract_facts", "max_context_turns"],
+      "additionalProperties": false,
+      "properties": {
+        "save_episodic": { "type": "boolean" },
+        "extract_facts": { "type": "boolean" },
+        "max_context_turns": { "type": "integer", "minimum": 4, "maximum": 50 }
+      }
+    },
+    "allowed_capabilities": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/capability_name" },
+      "uniqueItems": true
+    }
+  }
+}

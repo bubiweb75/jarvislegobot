@@ -1,6 +1,6 @@
 # Istruzioni di Montaggio — JARVIS AI Desk Buddy (Companion Hybrid v2 — Visiera Arrotondata SNOT)
 
-**Modello di riferimento:** [jarvis_lego_bot_companion_hybrid_v2_visor.mpd](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/10-Restyling-LEGO-Companion/jarvis_lego_bot_companion_hybrid_v2_visor.mpd)  
+**Modello di riferimento:** [jarvis_lego_bot_companion_hybrid_v2_visor.mpd](03-Mechanical-Design/10-Restyling-LEGO-Companion/jarvis_lego_bot_companion_hybrid_v2_visor.mpd)  
 **Totale pezzi verificati:** **144 pezzi** (**33 lotti unici**)  
 - **Modulo B1 (Base Fissa 12×12 stud arrotondata):** `26 pezzi`  
 - **Modulo A (Corpo Companion 10×10 stud + Visiera SNOT Opzione A):** `118 pezzi`  

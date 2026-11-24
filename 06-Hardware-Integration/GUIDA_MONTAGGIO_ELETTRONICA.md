@@ -1,7 +1,7 @@
 # Guida Illustrata al Montaggio Elettronico e Collaudo — JARVIS LEGO BOT (FASE 8.2B-0)
 
 > **Stato attuale:** Preparazione documentale pre-hardware. I componenti fisici non sono ancora arrivati; nessun collaudo su scheda reale è stato ancora eseguito.  
-> **Riferimenti codice e meccanica:** [pinout_config.h](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy/include/pinout_config.h) | [platformio.ini](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy/platformio.ini) | [Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md)
+> **Riferimenti codice e meccanica:** [pinout_config.h](04-Firmware/jarvis-desk-buddy/include/pinout_config.h) | [platformio.ini](04-Firmware/jarvis-desk-buddy/platformio.ini) | [Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md](03-Mechanical-Design/10-Restyling-LEGO-Companion/Istruzioni_Montaggio_Companion_Hybrid_v2_Visor.md)
 
 ---
 

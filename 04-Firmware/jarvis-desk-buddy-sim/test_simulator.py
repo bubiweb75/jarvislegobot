@@ -3,7 +3,7 @@
 import unittest
 
 from emotion_engine import EmotionConfig, EmotionEngine, StimulusType, detect_text_stimulus
-from eye_engine import ALL_EXPRESSIONS, EyeEngine, Expression, SimulatorStateMachine
+from eye_engine import ALL_EXPRESSIONS, EyeEngine, Expression, MicroExprType, SimulatorStateMachine, VisualProfile
 from monochrome_fb import BUFFER_SIZE, HEIGHT, WIDTH
 
 
@@ -206,6 +206,128 @@ class TestEmotionEngine(unittest.TestCase):
         err = eng.push_stimulus(StimulusType.TEMP_ERROR, now_ms=500)
         self.assertIsNotNone(err)
         self.assertEqual(err.expression, Expression.CONFUSED)
+
+
+class TestEyes2HybridEngine(unittest.TestCase):
+    def test_pupil_and_brow_targets_and_extreme_gaze_margins(self) -> None:
+        eyes = EyeEngine(fps=30, spacing_px=14, seed=42)
+        eyes.auto_idle_gaze = False
+
+        # Verify extreme LOOK offsets clamp cleanly and respect safe display margins
+        for dx, dy in [(-100, -100), (100, 100), (-11, 6), (11, -6)]:
+            eyes.set_expression(Expression.IDLE, now_ms=0)
+            eyes.set_gaze_offset(dx, dy, hold_ms=5000, now_ms=0)
+            for t in range(33, 990, 33):
+                eyes.update_step(t)
+            for col in (0, 1, 2, 125, 126, 127):
+                for row in range(64):
+                    self.assertEqual(eyes.fb.get_pixel(col, row), 0, f"Margin x={col} leaked at LOOK:{dx},{dy}")
+            for row in (0, 1, 2, 62, 63):
+                for col in range(128):
+                    self.assertEqual(eyes.fb.get_pixel(col, row), 0, f"Margin y={row} leaked at LOOK:{dx},{dy}")
+
+        # Verify pupil & eyebrow targets converge on expressive states
+        eyes.set_expression(Expression.CURIOUS, now_ms=1000)
+        for t in range(1033, 2000, 33):
+            eyes.update_step(t)
+        self.assertGreater(eyes.left.pupil_radius, 5.0)
+        self.assertGreater(eyes.right.brow_offset, 4.0)
+        self.assertLess(eyes.right.brow_tilt, 0.0)
+
+    def test_smooth_transitions_and_long_sequence_stability(self) -> None:
+        eyes = EyeEngine(fps=30, spacing_px=14, seed=123)
+        sm = SimulatorStateMachine(eyes, auto_demo=False)
+        self.assertTrue(sm.handle_command("STATUS", 10).startswith("OK:STATE="))
+        self.assertTrue(sm.handle_command("DIAG", 20).startswith("OK:DIAG;"))
+        self.assertEqual(sm.handle_command("BLINK", 30), "OK:BLINK")
+
+        now = 40
+        for idx, expr in enumerate(ALL_EXPRESSIONS):
+            resp = sm.handle_command(f"STATE:{expr.value}", now)
+            self.assertEqual(resp, f"EVENT:STATE={expr.value}")
+            if idx % 2 == 0:
+                sm.handle_command("LOOK:8,-4", now + 10)
+            else:
+                sm.handle_command("LOOK:-8,4", now + 10)
+            for _ in range(35):
+                now += 33
+                eyes.update_step(now)
+            # Every expression must stay within display safe bounds
+            for row in (0, 1, 2):
+                for col in range(128):
+                    self.assertEqual(eyes.fb.get_pixel(col, row), 0, f"Top margin leaked on {expr.value}")
+            self.assertGreater(eyes.fb.count_lit_pixels(), 150)
+
+
+class TestEyes3UltimateEngine(unittest.TestCase):
+    def test_visual_profiles_and_serial_commands(self) -> None:
+        eyes = EyeEngine(fps=30, spacing_px=14, seed=77)
+        sm = SimulatorStateMachine(eyes, auto_demo=False)
+        self.assertEqual(eyes.get_visual_profile(), VisualProfile.LIVELY)
+        self.assertEqual(sm.handle_command("PROFILE:CALM", 10), "OK:PROFILE=CALM")
+        self.assertEqual(eyes.get_visual_profile(), VisualProfile.CALM)
+        self.assertEqual(sm.handle_command("PROFILE:PLAYFUL", 20), "OK:PROFILE=PLAYFUL")
+        self.assertEqual(eyes.get_visual_profile(), VisualProfile.PLAYFUL)
+        self.assertEqual(sm.handle_command("PROFILE:INVALID", 30), "ERR:PROFILE_SYNTAX")
+        diag = sm.handle_command("DIAG", 40)
+        self.assertIn("PROFILE=PLAYFUL", diag)
+        self.assertIn("RENDER_US=", diag)
+
+    def test_interruptible_transitions_and_surprised_boost(self) -> None:
+        eyes = EyeEngine(fps=30, spacing_px=14, seed=101)
+        eyes.auto_idle_gaze = False
+        eyes.set_expression(Expression.THINKING, now_ms=0)
+        for t in range(33, 132, 33):
+            eyes.update_step(t)
+        # Interrupt mid-transition with SURPRISED
+        eyes.set_expression(Expression.SURPRISED, now_ms=132)
+        self.assertGreater(eyes.transition_boost, 1.5)
+        for t in range(165, 450, 33):
+            eyes.update_step(t)
+        self.assertEqual(eyes.expr, Expression.SURPRISED)
+        self.assertGreater(eyes.left.height, 34.0)
+        self.assertLess(eyes.left.pupil_radius, 4.8)
+
+    def test_micro_expressions_contextual_and_non_mutating(self) -> None:
+        eyes = EyeEngine(fps=30, spacing_px=14, seed=2026)
+        eyes.set_visual_profile(VisualProfile.PLAYFUL)
+        eyes.set_expression(Expression.IDLE, now_ms=0)
+        seen_micro = set()
+        for t in range(33, 20000, 33):
+            eyes.update_step(t)
+            self.assertEqual(eyes.expr, Expression.IDLE)
+            if eyes.micro_expr != MicroExprType.NONE:
+                seen_micro.add(eyes.micro_expr)
+        self.assertGreaterEqual(len(seen_micro), 1, "Expected at least one contextual micro-expression in PLAYFUL mode")
+
+        # Suppressed in SLEEPING and pupils hidden
+        eyes.set_expression(Expression.SLEEPING, now_ms=20000)
+        for t in range(20033, 25000, 33):
+            eyes.update_step(t)
+        self.assertEqual(eyes.micro_expr, MicroExprType.NONE)
+        self.assertLess(eyes.left.pupil_radius, 0.2)
+
+    def test_gaze_command_precedence_and_listening_stability(self) -> None:
+        eyes = EyeEngine(fps=30, spacing_px=14, seed=55)
+        eyes.set_expression(Expression.IDLE, now_ms=0)
+        eyes.set_gaze_offset(10, -5, hold_ms=1000, now_ms=100)
+        self.assertGreater(eyes.left.target_pupil_dx, 4.0)
+        # During override, micro-expressions must not override gaze
+        eyes.update_step(500)
+        self.assertEqual(eyes.micro_expr, MicroExprType.NONE)
+
+        # During LISTENING, sclera remains centered
+        eyes.set_expression(Expression.LISTENING, now_ms=1500)
+        for t in range(1533, 6000, 33):
+            eyes.update_step(t)
+        self.assertAlmostEqual(eyes.left.target_x, float(eyes.left.base_x), delta=0.1)
+
+    def test_compare_v2_v3_cli_smoke(self) -> None:
+        import compare_eyes_v2_v3
+        samples = compare_eyes_v2_v3.run_cli_comparison()
+        self.assertGreaterEqual(len(samples), 8)
+        for s in samples:
+            self.assertGreater(s.v3_lit, 0)
 
 
 if __name__ == "__main__":

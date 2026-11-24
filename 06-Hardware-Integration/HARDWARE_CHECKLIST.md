@@ -1,7 +1,7 @@
 # HARDWARE_CHECKLIST — Verifiche all'Arrivo Componenti e Preparazione LEGO (FASE 6)
 
 > **Stato:** Da compilare fisicamente quando i componenti elettronici saranno consegnati.
-> **Design meccanico di riferimento:** **Companion Hybrid v2 — Visiera Capsula Arrotondata SNOT** ([jarvis_lego_bot_companion_hybrid_v2_visor.mpd](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/10-Restyling-LEGO-Companion/jarvis_lego_bot_companion_hybrid_v2_visor.mpd)).
+> **Design meccanico di riferimento:** **Companion Hybrid v2 — Visiera Capsula Arrotondata SNOT** ([jarvis_lego_bot_companion_hybrid_v2_visor.mpd](03-Mechanical-Design/10-Restyling-LEGO-Companion/jarvis_lego_bot_companion_hybrid_v2_visor.mpd)).
 
 ---
 

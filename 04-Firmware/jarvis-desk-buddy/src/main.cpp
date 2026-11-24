@@ -41,8 +41,19 @@ void setup() {
         Serial.println(F("WARN: No OLED ACK at 0x3C/0x3D (check wiring/VCC/GND). Continuing anyway."));
     }
 
+#ifdef WOKWI_SIM
+    // Brief startup splash screen for Wokwi hardware simulation demo
+    jarvis::display::u8g2.clearBuffer();
+    jarvis::display::u8g2.setFont(u8g2_font_ncenB14_tr);
+    jarvis::display::u8g2.drawStr(24, 30, "JARVIS");
+    jarvis::display::u8g2.setFont(u8g2_font_6x10_tr);
+    jarvis::display::u8g2.drawStr(16, 48, "ESP32-S3 WOKWI SIM");
+    jarvis::display::u8g2.sendBuffer();
+    delay(900);
+#endif
+
     g_sensor_stub.Begin();
-    g_eyes.Begin(50, 14);
+    g_eyes.Begin(30, 12);
     g_state_machine.Begin(g_eyes, true);
     g_state_machine.SetOledDetectedAddr(scan.detected_addr);
     Serial.println(F("Ready. Type HELP on Serial or press GPIO47 button."));

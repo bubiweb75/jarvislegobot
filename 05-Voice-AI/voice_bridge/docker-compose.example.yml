@@ -1,0 +1,23 @@
+services:
+  jarvis-voice-bridge:
+    build:
+      context: ..
+      dockerfile: voice_bridge/Dockerfile
+    container_name: jarvis-voice-bridge
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    env_file:
+      - .env.bridge
+    volumes:
+      - /opt/docker/appdata/jarvis-voice-bridge/models/whisper:/models/whisper:ro
+      - /opt/docker/appdata/jarvis-voice-bridge/models/piper:/models/piper:ro
+      - /opt/docker/appdata/jarvis-voice-bridge/tmp:/data/tmp
+    mem_limit: 2g
+    cpus: 2.0
+    networks:
+      - jarvis_lan_net
+
+networks:
+  jarvis_lan_net:
+    driver: bridge

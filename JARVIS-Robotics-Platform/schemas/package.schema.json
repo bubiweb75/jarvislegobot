@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/package.schema.json",
+  "title": "JARVIS Robotics Platform — Package Manifest Schema",
+  "description": "Schema formale per i manifesti (manifest.json) contenuti nei pacchetti .jarvis-skin, .jarvis-identity e .jarvis-hardware.",
+  "type": "object",
+  "required": [
+    "package_id",
+    "package_type",
+    "format_version",
+    "created_at",
+    "author",
+    "entrypoint_file",
+    "assets",
+    "security_limits"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "package_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "package_type": {
+      "type": "string",
+      "enum": ["SKIN_PACKAGE", "IDENTITY_PACKAGE", "HARDWARE_PACKAGE"]
+    },
+    "format_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/iso_date_utc"
+    },
+    "author": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "entrypoint_file": {
+      "type": "string",
+      "enum": ["skin.json", "identity.json", "hardware.json"]
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 25,
+      "items": {
+        "type": "object",
+        "required": ["filename", "size_bytes", "sha256", "content_type"],
+        "additionalProperties": false,
+        "properties": {
+          "filename": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*\\.(json|wav|xbm|md|tflite)$",
+            "description": "Percorso relativo senza caratteri ../ o prefissi assoluti."
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 524288
+          },
+          "sha256": {
+            "$ref": "common.schema.json#/$defs/sha256"
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "application/json",
+              "image/x-xbitmap",
+              "audio/wav",
+              "text/markdown",
+              "application/octet-stream"
+            ]
+          }
+        }
+      }
+    },
+    "security_limits": {
+      "type": "object",
+      "required": ["max_extracted_bytes", "max_compression_ratio"],
+      "additionalProperties": false,
+      "properties": {
+        "max_extracted_bytes": { "type": "integer", "maximum": 1048576 },
+        "max_compression_ratio": { "type": "number", "maximum": 10.0 }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "description": "Firma crittografica asimmetrica opzionale per autenticità autore (distinta dal checksum SHA-256)",
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["ed25519", "rsa-pss-sha256"] },
+        "public_key_id": { "type": "string" },
+        "signature_base64": { "type": "string" }
+      }
+    }
+  }
+}

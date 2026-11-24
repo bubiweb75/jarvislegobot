@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "author": "JARVIS LEGO BOT (Diagnostica GPIO1)",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-s3-devkitc-1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {
+        "flashSize": "16",
+        "psramType": "octal"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_touch",
+      "top": 205,
+      "left": 220,
+      "attrs": {
+        "color": "green",
+        "key": "t",
+        "label": "TOUCH GPIO1"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_touch",
+      "top": 245,
+      "left": 140,
+      "attrs": {
+        "value": "10000"
+      }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "btn_touch:1.l", "esp:1", "yellow", [ "h-20" ] ],
+    [ "btn_touch:2.r", "esp:3V3.2", "red", [ "h20" ] ],
+    [ "r_touch:1", "btn_touch:1.l", "yellow", [ "h0" ] ],
+    [ "r_touch:2", "esp:GND.3", "black", [ "h0" ] ]
+  ],
+  "serialMonitor": {
+    "display": "auto",
+    "newline": "lf"
+  },
+  "dependencies": {}
+}

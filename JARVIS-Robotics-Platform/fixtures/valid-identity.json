@@ -1,0 +1,48 @@
+{
+  "$schema": "../schemas/identity.schema.json",
+  "identity_id": "identity-test-valid-v1",
+  "schema_version": "1.0.0",
+  "name": "Valid Test Identity",
+  "description": "Profilo identità sintetico per convalida positiva delle suite di test.",
+  "author": "Test Author",
+  "identity_version": "1.0.0",
+  "language": "it",
+  "skin_ref": {
+    "skin_id": "skin-test-valid-v1",
+    "package_filename": "test-valid.jarvis-skin"
+  },
+  "voice_ref": {
+    "voice_id": "voice-piper-riccardo-v1",
+    "provider": "piper",
+    "speed": 1.0,
+    "pitch": 0.0,
+    "volume": 80
+  },
+  "wakeword_ref": {
+    "model_id": "wakeword-hey-jarvis-v2",
+    "phrase": "Hey Jarvis",
+    "detection_threshold": 0.75
+  },
+  "personality_ref": {
+    "personality_id": "personality-jarvis-assistant-v1"
+  },
+  "visual_behavior_profile": "LIVELY",
+  "greetings": {
+    "presentation_phrase": "Test Identity inizializzata correttamente per la suite di convalida.",
+    "welcome_phrases": [
+      "Pronto per il test."
+    ]
+  },
+  "sound_effects": {
+    "enabled": false
+  },
+  "required_capabilities": [
+    "DISPLAY_MONO_128X64",
+    "AUDIO_INPUT_I2S",
+    "AUDIO_OUTPUT_I2S",
+    "PTT"
+  ],
+  "fallback": {
+    "fallback_identity_id": "identity-jarvis-original-v3"
+  }
+}

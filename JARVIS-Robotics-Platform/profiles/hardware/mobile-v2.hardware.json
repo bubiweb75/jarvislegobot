@@ -1,0 +1,91 @@
+{
+  "$schema": "../../schemas/hardware.schema.json",
+  "hardware_profile_id": "hw-jarvis-mobile-rover-v2",
+  "schema_version": "1.0.0",
+  "name": "JARVIS Mobile Rover V2",
+  "description": "Profilo hardware per piattaforma mobile con trazione differenziale TB6612FNG, sensori cliff anticaduta e watchdog harwdare.",
+  "revision": "V2.0",
+  "mcu": {
+    "model": "ESP32-S3-WROOM-1-N16R8",
+    "flash_bytes": 16777216,
+    "psram_bytes": 8388608,
+    "clock_mhz": 240
+  },
+  "display": {
+    "type": "SH1106",
+    "width": 128,
+    "height": 64,
+    "color_depth": "monochrome_1bit",
+    "bus": "I2C0",
+    "sda_gpio": 41,
+    "scl_gpio": 42,
+    "clock_hz": 400000,
+    "i2c_addr_7bit": 60
+  },
+  "audio_input": {
+    "type": "INMP441",
+    "bus": "I2S0",
+    "ws_gpio": 4,
+    "sck_gpio": 5,
+    "sd_gpio": 6,
+    "sample_rate_hz": 16000
+  },
+  "audio_output": {
+    "type": "MAX98357A",
+    "bus": "I2S1",
+    "din_gpio": 7,
+    "bclk_gpio": 15,
+    "lrc_gpio": 16,
+    "speaker_impedance_ohm": 4,
+    "speaker_max_watts": 3.0
+  },
+  "user_inputs": {
+    "ptt_button_gpio": 47,
+    "ptt_active_level": "LOW",
+    "touch_sensor_gpio": 1,
+    "touch_active_level": "HIGH"
+  },
+  "mobility": {
+    "enabled": true,
+    "driver_type": "TB6612FNG",
+    "motor_type": "N20_6V",
+    "pwm_freq_hz": 20000,
+    "pinout": {
+      "pwma_gpio": 11,
+      "ain1_gpio": 12,
+      "ain2_gpio": 13,
+      "pwmb_gpio": 14,
+      "bin1_gpio": 39,
+      "bin2_gpio": 40,
+      "stby_gpio": 21
+    },
+    "safety": {
+      "watchdog_timeout_ms": 250,
+      "cliff_sensors": {
+        "enabled": true,
+        "cliff_left_gpio": 17,
+        "cliff_right_gpio": 18
+      }
+    }
+  },
+  "power": {
+    "type": "BATTERY_2S_LIPO",
+    "nominal_voltage_v": 7.4,
+    "min_safe_voltage_v": 6.6
+  },
+  "reserved_pins": [0, 3, 19, 20, 35, 36, 37, 38, 43, 44, 45, 46, 48],
+  "capabilities": [
+    "DISPLAY_MONO_128X64",
+    "AUDIO_INPUT_I2S",
+    "AUDIO_OUTPUT_I2S",
+    "PTT",
+    "LOCAL_WAKEWORD",
+    "LOCAL_INTENTS",
+    "TOUCH_SINGLE",
+    "TOUCH_DOUBLE",
+    "TOUCH_LONG",
+    "MOTOR_CONTROL",
+    "CLIFF_DETECTION",
+    "BATTERY_TELEMETRY"
+  ]
+}

@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 #include "eye_engine.h"
+#ifdef JARVIS_ENABLE_TOUCH
+#include "touch_manager.h"
+#endif
 
 namespace jarvis::state {
 
@@ -52,6 +55,20 @@ private:
     void CycleNextExpression();
     void PrintStatus() const;
     void PrintDiagnostics(uint32_t now_ms) const;
+
+#ifdef JARVIS_ENABLE_TOUCH
+    touch::TouchManager touch_{};
+    bool touch_reaction_active_ = false;
+    bool touch_long_holding_ = false;
+    uint32_t touch_reaction_until_ms_ = 0;
+    eyes::Expression saved_expr_ = eyes::Expression::kNeutral;
+    bool saved_auto_demo_ = true;
+
+    void PollTouch(uint32_t now_ms);
+    void HandleTouchEvent(touch::TouchEvent ev, uint32_t now_ms);
+    void HandleTouchRelease(uint32_t now_ms);
+    void CancelTouchReaction();
+#endif
 };
 
 }  // namespace jarvis::state

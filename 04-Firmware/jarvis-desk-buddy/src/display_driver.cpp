@@ -3,12 +3,14 @@
 // =============================================================================
 #include "display_driver.h"
 
+#include <Arduino.h>
 #include <Wire.h>
 #include "pinout_config.h"
 
 namespace jarvis::display {
 
 JarvisU8g2Display u8g2(U8G2_R0, U8X8_PIN_NONE);
+static uint32_t g_last_transfer_us = 0;
 
 static bool ProbeAddress(uint8_t addr) {
     Wire.beginTransmission(addr);
@@ -37,10 +39,17 @@ I2cScanResult Begin() {
     return res;
 }
 
-void PresentFramebuffer(const gfx::MonochromeFramebuffer& fb) {
+uint32_t PresentFramebuffer(const gfx::MonochromeFramebuffer& fb) {
+    const uint32_t t0 = micros();
     u8g2.clearBuffer();
     u8g2.drawXBM(0, 0, gfx::kWidth, gfx::kHeight, fb.Data());
     u8g2.sendBuffer();
+    g_last_transfer_us = micros() - t0;
+    return g_last_transfer_us;
+}
+
+uint32_t LastTransferUs() {
+    return g_last_transfer_us;
 }
 
 }  // namespace jarvis::display

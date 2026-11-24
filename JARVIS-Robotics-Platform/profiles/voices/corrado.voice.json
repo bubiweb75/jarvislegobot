@@ -1,0 +1,39 @@
+{
+  "$schema": "../../schemas/voice.schema.json",
+  "voice_id": "voice-piper-corrado-v1",
+  "schema_version": "1.0.0",
+  "name": "Corrado",
+  "description": "Voce italiana maschile profonda, asciutta e autorevole, ideale per risposte concise e robotiche.",
+  "provider": "piper",
+  "model_filename": "it_IT-corrado-medium.onnx",
+  "language": "it",
+  "language_variant": "it_IT",
+  "gender": "male",
+  "audio_format": {
+    "sample_rate_hz": 22050,
+    "channels": 1,
+    "bit_depth": 16,
+    "encoding": "pcm_s16le"
+  },
+  "parameters": {
+    "speed": 1.0,
+    "pitch": -4.0,
+    "volume": 85
+  },
+  "dsp_pipeline": {
+    "wsola_enabled": true,
+    "noise_scale": 0.500,
+    "length_scale": 0.95,
+    "soft_clipping_tanh": true,
+    "profile_label": "tars_deep_dsp"
+  },
+  "capabilities": {
+    "supports_pitch_shift": true,
+    "supports_wsola_speed": true,
+    "supports_offline": true
+  },
+  "availability": "AVAILABLE_DOWNLOAD",
+  "fallback": {
+    "fallback_voice_id": "voice-piper-riccardo-v1"
+  }
+}

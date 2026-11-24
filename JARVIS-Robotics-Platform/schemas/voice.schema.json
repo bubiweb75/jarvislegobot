@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/voice.schema.json",
+  "title": "JARVIS Robotics Platform — Voice Profile Schema",
+  "description": "Schema formale per la definizione e calibrazione dei profili di sintesi vocale TTS multi-provider.",
+  "type": "object",
+  "required": [
+    "voice_id",
+    "schema_version",
+    "name",
+    "provider",
+    "language",
+    "language_variant",
+    "gender",
+    "audio_format",
+    "parameters",
+    "dsp_pipeline",
+    "capabilities",
+    "availability",
+    "fallback"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "voice_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["piper", "openai", "elevenlabs", "azure"]
+    },
+    "model_filename": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._-]+\\.(onnx|bin|pt)$"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["it", "en"]
+    },
+    "language_variant": {
+      "type": "string",
+      "enum": ["it_IT", "en_US", "en_GB"]
+    },
+    "gender": {
+      "type": "string",
+      "enum": ["male", "female", "neutral"]
+    },
+    "audio_format": {
+      "type": "object",
+      "required": ["sample_rate_hz", "channels", "bit_depth", "encoding"],
+      "additionalProperties": false,
+      "properties": {
+        "sample_rate_hz": { "type": "integer", "enum": [16000, 22050, 24000, 44100] },
+        "channels": { "type": "integer", "enum": [1, 2] },
+        "bit_depth": { "type": "integer", "enum": [16, 24] },
+        "encoding": { "type": "string", "enum": ["pcm_s16le", "wav"] }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["speed", "pitch", "volume"],
+      "additionalProperties": false,
+      "properties": {
+        "speed": { "type": "number", "minimum": 0.5, "maximum": 2.0 },
+        "pitch": { "type": "number", "minimum": -12.0, "maximum": 12.0 },
+        "volume": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "dsp_pipeline": {
+      "type": "object",
+      "required": ["wsola_enabled", "noise_scale", "profile_label"],
+      "additionalProperties": false,
+      "properties": {
+        "wsola_enabled": { "type": "boolean" },
+        "noise_scale": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "length_scale": { "type": "number", "minimum": 0.5, "maximum": 2.0 },
+        "soft_clipping_tanh": { "type": "boolean" },
+        "profile_label": { "type": "string", "maxLength": 50 }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["supports_pitch_shift", "supports_wsola_speed", "supports_offline"],
+      "additionalProperties": false,
+      "properties": {
+        "supports_pitch_shift": { "type": "boolean" },
+        "supports_wsola_speed": { "type": "boolean" },
+        "supports_offline": { "type": "boolean" }
+      }
+    },
+    "availability": {
+      "type": "string",
+      "enum": ["VERIFIED_INSTALLED", "AVAILABLE_DOWNLOAD", "PROPOSED_UNVERIFIED"]
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["fallback_voice_id"],
+      "additionalProperties": false,
+      "properties": {
+        "fallback_voice_id": { "$ref": "common.schema.json#/$defs/identifier" }
+      }
+    }
+  }
+}

@@ -25,7 +25,7 @@ Wi-Fi, Bluetooth e Raspberry Pi sono esclusi dalla v1 per mantenere bassa latenz
 | **Totale Full-Duplex** | Bidirezionale simultaneo | **~64 – 76 KB/s** | **< 80 KB/s** |
 
 - Il protocollo solo testo a `115200 baud` (~11,5 KB/s reali su UART) **non** può trasportare audio PCM.
-- La porta **`USB` nativa** (`GPIO 19/20`, `-DARDUINO_USB_CDC_ON_BOOT=1`) opera su **USB 2.0 Full-Speed (12 Mbps)** con throughput pratico di **400–800 KB/s**, gestendo facilmente l'audio full-duplex tramite il framing binario descritto in [USB_PROTOCOL.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/06-Hardware-Integration/USB_PROTOCOL.md).
+- La porta **`USB` nativa** (`GPIO 19/20`, `-DARDUINO_USB_CDC_ON_BOOT=1`) opera su **USB 2.0 Full-Speed (12 Mbps)** con throughput pratico di **400–800 KB/s**, gestendo facilmente l'audio full-duplex tramite il framing binario descritto in [USB_PROTOCOL.md](06-Hardware-Integration/USB_PROTOCOL.md).
 
 ---
 

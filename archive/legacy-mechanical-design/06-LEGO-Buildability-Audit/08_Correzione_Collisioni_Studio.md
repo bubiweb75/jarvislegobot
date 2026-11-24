@@ -1,7 +1,7 @@
 # 08 — Correzione Collisioni Rilevate in BrickLink Studio 2.0
 
 **Data:** 2026-11-13  
-**File MPD verificato:** [`jarvis_lego_bot.mpd`](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/06-LEGO-Buildability-Audit/jarvis_lego_bot.mpd)  
+**File MPD verificato:** [`jarvis_lego_bot.mpd`](03-Mechanical-Design/06-LEGO-Buildability-Audit/jarvis_lego_bot.mpd)  
 **Libreria geometrica di riferimento:** Mesh reali `.dat` di BrickLink Studio 2.0 (`C:\Program Files\Studio 2.0\ldraw\parts\` e `p\`)
 
 ---
@@ -74,4 +74,4 @@ Importando il file in **BrickLink Studio 2.0** con il controllo collisioni attiv
 ## 4. Stato della validazione finale in BrickLink Studio 2.0 GUI
 
 - La verifica automatica è stata eseguita in Python direttamente sulle **mesh `.dat` ufficiali installate da Studio 2.0** su questo PC (`0` collisioni su tutti i moduli e su entrambi gli assiemi `A+B1` e `A+B2`).
-- Il motore interno della GUI di BrickLink Studio 2.0 esegue inoltre controlli propri su connettività delle clip/cerniere e tolleranze di snap durante il rendering interattivo: **è raccomandato un ultimo import visivo di [`jarvis_lego_bot.mpd`](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/03-Mechanical-Design/06-LEGO-Buildability-Audit/jarvis_lego_bot.mpd) in Studio 2.0 sul PC dell'utente** con controllo collisioni attivo come conferma finale prima di procedere agli acquisti.
+- Il motore interno della GUI di BrickLink Studio 2.0 esegue inoltre controlli propri su connettività delle clip/cerniere e tolleranze di snap durante il rendering interattivo: **è raccomandato un ultimo import visivo di [`jarvis_lego_bot.mpd`](03-Mechanical-Design/06-LEGO-Buildability-Audit/jarvis_lego_bot.mpd) in Studio 2.0 sul PC dell'utente** con controllo collisioni attivo come conferma finale prima di procedere agli acquisti.

@@ -1,0 +1,51 @@
+{
+  "$schema": "../schemas/skin.schema.json",
+  "skin_id": "skin-test-valid-v1",
+  "schema_version": "1.0.0",
+  "name": "Test Valid Skin",
+  "description": "Skin di test formale valida per test automatici di piattaforma.",
+  "author": "JARVIS Test Runner",
+  "skin_version": "1.0.0",
+  "target_display": {
+    "type": "monochrome_1bit",
+    "width": 128,
+    "height": 64
+  },
+  "base_geometry": {
+    "width": 38.0,
+    "height": 38.0,
+    "shape_power": 2.6,
+    "taper": 0.10,
+    "corner_radius": 11.0,
+    "spacing_px": 16,
+    "pupil": {
+      "shape": "circle",
+      "radius": 7.0,
+      "catchlight": "double_offset"
+    }
+  },
+  "visual_behavior_profile_default": "LIVELY",
+  "expressions": {
+    "NEUTRAL": { "render_mode": "parametric", "width": 38.0, "height": 38.0, "shape_power": 2.6, "corner_radius": 11.0, "pupil_radius": 7.0 },
+    "HAPPY": { "render_mode": "crescent", "width": 36.0, "height": 24.0, "pupil_radius": 0.0 },
+    "CURIOUS": { "render_mode": "parametric", "width": 38.0, "height": 38.0 },
+    "SLEEPY": { "render_mode": "parametric", "width": 36.0, "height": 30.0 },
+    "LISTENING": { "render_mode": "parametric", "width": 38.0, "height": 42.0 },
+    "THINKING": { "render_mode": "parametric", "width": 35.0, "height": 31.0 },
+    "SPEAKING": { "render_mode": "parametric", "width": 37.0, "height": 35.0 },
+    "SURPRISED": { "render_mode": "parametric", "width": 39.0, "height": 45.0 },
+    "SHY": { "render_mode": "parametric", "width": 32.0, "height": 28.0 },
+    "LOVE": { "render_mode": "heart", "width": 34.0, "height": 34.0 },
+    "WINK": { "render_mode": "parametric", "width": 38.0, "height": 38.0 },
+    "CONFUSED": { "render_mode": "parametric", "width": 36.0, "height": 36.0 },
+    "MISCHIEVOUS": { "render_mode": "parametric", "width": 37.0, "height": 32.0 },
+    "SLEEPING": { "render_mode": "sleeping_lash", "width": 34.0, "height": 18.0 }
+  },
+  "motion": {
+    "natural_gaze": { "enabled": true, "micro_saccades_enabled": true, "max_offset_x": 8.0, "max_offset_y": 4.0, "suppress_in_listening": true },
+    "advanced_blink": { "enabled": true, "close_rate": 15.0, "open_rate": 10.0, "hold_closed_ms": 60, "double_blink_chance_pct": 10 },
+    "interpolation": { "algorithm": "exponential_decay", "base_decay_rate": 12.0 }
+  },
+  "voice_reactivity": { "enabled": true, "target_ocular_element": "lower_eyelid_arch", "max_deviation_px": 4.0, "smoothing_factor": 0.65 },
+  "fallback": { "fallback_skin_id": "skin-jarvis-original-v3" }
+}

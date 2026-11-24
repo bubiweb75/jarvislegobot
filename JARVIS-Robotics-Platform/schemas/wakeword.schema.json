@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/wakeword.schema.json",
+  "title": "JARVIS Robotics Platform — Wake Word Profile Schema",
+  "description": "Schema formale per la definizione e gestione dei modelli acustici di parole di attivazione continua.",
+  "type": "object",
+  "required": [
+    "wakeword_id",
+    "schema_version",
+    "phrase",
+    "language",
+    "engine",
+    "format",
+    "status",
+    "detection_parameters",
+    "resource_requirements",
+    "fallback_mechanism"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "wakeword_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "phrase": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50,
+      "description": "Frase acustica di risveglio (es. Hey Jarvis, Hey Eva)"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["it", "en"]
+    },
+    "engine": {
+      "type": "string",
+      "enum": ["microWakeWord", "WakeNet9", "openWakeWord", "Porcupine"]
+    },
+    "model_filename": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._-]+\\.(tflite|bin|onnx|h)$"
+    },
+    "model_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["tflite_int8", "c_array", "onnx_int8", "wakenet_model"]
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 500000
+    },
+    "checksum_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "license": {
+      "type": "string",
+      "enum": ["Apache-2.0", "MIT", "BSD-3-Clause", "Proprietary"]
+    },
+    "status": {
+      "$ref": "common.schema.json#/$defs/wakeword_status"
+    },
+    "detection_parameters": {
+      "type": "object",
+      "required": [
+        "threshold",
+        "cooldown_ms",
+        "anti_retrigger_holdoff_ms",
+        "barge_in_suppression"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "threshold": {
+          "type": "number",
+          "minimum": 0.3,
+          "maximum": 0.99,
+          "description": "Soglia di confidenza della rete neurale per emettere l'evento di wake"
+        },
+        "cooldown_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 2000
+        },
+        "anti_retrigger_holdoff_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 1000,
+          "description": "Finestra temporale di blocco acustico dopo la risposta TTS"
+        },
+        "barge_in_suppression": {
+          "type": "boolean",
+          "description": "Soppressione automatica dell'inferenza durante la riproduzione I2S speaker"
+        }
+      }
+    },
+    "resource_requirements": {
+      "type": "object",
+      "required": ["flash_bytes", "ram_tensor_arena_bytes", "cpu_core"],
+      "additionalProperties": false,
+      "properties": {
+        "flash_bytes": { "type": "integer", "maximum": 200000 },
+        "ram_tensor_arena_bytes": { "type": "integer", "maximum": 65536 },
+        "psram_bytes": { "type": "integer", "maximum": 1000000 },
+        "cpu_core": { "type": "integer", "enum": [0, 1] }
+      }
+    },
+    "fallback_mechanism": {
+      "type": "object",
+      "required": ["ptt_button_always_active"],
+      "additionalProperties": false,
+      "properties": {
+        "ptt_button_always_active": {
+          "type": "boolean",
+          "const": true,
+          "description": "Il pulsante meccanico PTT su GPIO47 deve restare sempre operativo come fallback sicuro."
+        },
+        "secondary_wakeword_id": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        }
+      }
+    }
+  }
+}

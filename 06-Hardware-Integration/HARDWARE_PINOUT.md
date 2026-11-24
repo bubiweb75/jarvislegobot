@@ -1,14 +1,14 @@
 # HARDWARE_PINOUT — Verifica Pinout ESP32-S3-DevKitC-1 N16R8 (FASE 6)
 
 > **Stato:** Preparazione documentale pre-hardware. I componenti elettronici non sono ancora arrivati; nessuna modifica al firmware o flash è stata eseguita.
-> **Riferimenti incrociati:** [02_Tabella_Pinout_Definitiva.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/01-Hardware/02_Tabella_Pinout_Definitiva.md) | [pinout_config.h](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy/include/pinout_config.h)
+> **Riferimenti incrociati:** [02_Tabella_Pinout_Definitiva.md](01-Hardware/02_Tabella_Pinout_Definitiva.md) | [pinout_config.h](04-Firmware/jarvis-desk-buddy/include/pinout_config.h)
 
 ---
 
 ## 1. Analisi della Scheda: ESP32-S3-DevKitC-1 (WROOM-1-N16R8)
 
 - **MCU:** ESP32-S3 dual-core LX7 @ 240 MHz.
-- **Memoria (`N16R8`):** 16 MB Flash QIO + **8 MB Octal PSRAM (OPI)** (come già configurato in [platformio.ini](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy/platformio.ini)).
+- **Memoria (`N16R8`):** 16 MB Flash QIO + **8 MB Octal PSRAM (OPI)** (come già configurato in [platformio.ini](04-Firmware/jarvis-desk-buddy/platformio.ini)).
 - **Connettori USB sulla DevKitC-1:**
   - **Porta `USB` (Native USB-OTG / USB-Serial/JTAG):** collegata a **GPIO 19 (`D-`)** e **GPIO 20 (`D+`)**. Il firmware attuale usa `-DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=1`, quindi `Serial` passa da questa porta.
   - **Porta `UART` (USB-to-UART Bridge):** collegata a **GPIO 43 (`U0TXD`)** e **GPIO 44 (`U0RXD`)**. Utile per log di boot/emergenza, ma limitata dal baud rate del bridge.
@@ -32,7 +32,7 @@
 
 ## 2. Verifica dei GPIO già proposti dal Firmware Attuale
 
-Nel file [pinout_config.h](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy/include/pinout_config.h) risultano già configurati:
+Nel file [pinout_config.h](04-Firmware/jarvis-desk-buddy/include/pinout_config.h) risultano già configurati:
 - `OLED SDA = GPIO 41`
 - `OLED SCL = GPIO 42`
 - `Pulsante = GPIO 47`

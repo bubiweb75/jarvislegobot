@@ -1,0 +1,57 @@
+{
+  "$schema": "../../schemas/skin.schema.json",
+  "skin_id": "skin-tars-geometric-v1",
+  "schema_version": "1.0.0",
+  "name": "TARS Geometric — Minimalist Companion",
+  "description": "Identità geometrica, squadrata e cartesiana. Maschere angolari nette e transizioni meccaniche sofisticate.",
+  "author": "JARVIS Platform Team",
+  "skin_version": "1.0.0",
+  "target_display": {
+    "type": "monochrome_1bit",
+    "width": 128,
+    "height": 64
+  },
+  "base_geometry": {
+    "width": 40.0,
+    "height": 32.0,
+    "shape_power": 4.0,
+    "taper": 0.0,
+    "corner_radius": 4.0,
+    "spacing_px": 16,
+    "pupil": {
+      "shape": "square",
+      "radius": 6.0,
+      "catchlight": "none"
+    },
+    "eyebrows": {
+      "offset": 4.0,
+      "arch": 0.0,
+      "tilt": 0.0
+    }
+  },
+  "visual_behavior_profile_default": "PLAYFUL",
+  "expressions": {
+    "NEUTRAL": { "render_mode": "parametric", "width": 40.0, "height": 32.0, "shape_power": 4.0, "corner_radius": 4.0, "pupil_radius": 6.0 },
+    "HAPPY": { "render_mode": "crescent", "width": 38.0, "height": 22.0, "pupil_radius": 0.0 },
+    "CURIOUS": { "render_mode": "parametric", "width": 40.0, "height": 32.0, "left": { "width": 34.0, "height": 26.0 }, "right": { "width": 44.0, "height": 36.0 } },
+    "SLEEPY": { "render_mode": "parametric", "width": 38.0, "height": 24.0, "upper_lid_l": 10.0, "upper_lid_r": 10.0, "pupil_radius": 3.0 },
+    "LISTENING": { "render_mode": "parametric", "width": 42.0, "height": 38.0, "pupil_radius": 8.0 },
+    "THINKING": { "render_mode": "parametric", "width": 36.0, "height": 28.0, "offset_x": 5.0, "offset_y": -2.0, "pupil_dx": 6.0, "pupil_dy": -2.0, "pupil_radius": 4.5 },
+    "SPEAKING": { "render_mode": "parametric", "width": 39.0, "height": 30.0, "lower_lid": 3.0, "lower_arch": 0.0, "pupil_radius": 5.5 },
+    "SURPRISED": { "render_mode": "parametric", "width": 42.0, "height": 40.0, "pupil_radius": 3.0, "transition_boost": 1.9 },
+    "SHY": { "render_mode": "parametric", "width": 34.0, "height": 26.0, "offset_x": -3.0, "offset_y": 3.0, "pupil_dx": -4.0, "pupil_dy": 2.0, "pupil_radius": 4.0 },
+    "LOVE": { "render_mode": "heart", "width": 32.0, "height": 32.0, "pupil_radius": 0.0 },
+    "WINK": { "render_mode": "parametric", "width": 40.0, "height": 32.0, "left": { "width": 40.0, "height": 32.0 }, "right": { "render_mode": "angular_slit", "width": 38.0, "height": 20.0 } },
+    "CONFUSED": { "render_mode": "parametric", "width": 38.0, "height": 30.0, "left": { "width": 32.0, "height": 24.0 }, "right": { "width": 42.0, "height": 34.0 } },
+    "MISCHIEVOUS": { "render_mode": "parametric", "width": 38.0, "height": 28.0, "upper_lid_l": 4.0, "upper_lid_r": 12.0, "brow_tilt": 4.0 },
+    "SLEEPING": { "render_mode": "sleeping_lash", "width": 36.0, "height": 18.0, "pupil_radius": 0.0 }
+  },
+  "motion": {
+    "natural_gaze": { "enabled": true, "micro_saccades_enabled": false, "max_offset_x": 10.0, "max_offset_y": 4.0, "suppress_in_listening": true },
+    "advanced_blink": { "enabled": true, "close_rate": 20.0, "open_rate": 16.0, "hold_closed_ms": 40, "double_blink_chance_pct": 10 },
+    "interpolation": { "algorithm": "exponential_decay", "base_decay_rate": 15.0 }
+  },
+  "voice_reactivity": { "enabled": true, "target_ocular_element": "vertical_squeeze", "max_deviation_px": 2.5, "smoothing_factor": 0.75 },
+  "resource_limits": { "max_framebuffer_bytes": 1024, "max_render_time_us": 2400 },
+  "fallback": { "fallback_skin_id": "skin-jarvis-original-v3" }
+}

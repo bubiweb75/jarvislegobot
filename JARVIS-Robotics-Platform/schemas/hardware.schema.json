@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/hardware.schema.json",
+  "title": "JARVIS Robotics Platform — Hardware Profile Schema",
+  "description": "Schema formale per la definizione e convalida delle caratteristiche elettroniche e dei GPIO.",
+  "type": "object",
+  "required": [
+    "hardware_profile_id",
+    "schema_version",
+    "name",
+    "revision",
+    "mcu",
+    "display",
+    "audio_input",
+    "audio_output",
+    "user_inputs",
+    "mobility",
+    "power",
+    "reserved_pins",
+    "capabilities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "hardware_profile_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^V[0-9]+(\\.[0-9]+)?$"
+    },
+    "carrier_board": {
+      "type": "object",
+      "required": ["model", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string", "maxLength": 50 },
+        "status": {
+          "type": "string",
+          "enum": ["DESIGNED_ORDERED", "FABRICATED_UNVERIFIED", "VERIFIED_TESTED"]
+        }
+      }
+    },
+    "mcu": {
+      "type": "object",
+      "required": ["model", "flash_bytes", "psram_bytes", "clock_mhz"],
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string", "maxLength": 50 },
+        "flash_bytes": { "type": "integer", "enum": [4194304, 8388608, 16777216] },
+        "psram_bytes": { "type": "integer", "enum": [0, 2097152, 8388608] },
+        "clock_mhz": { "type": "integer", "enum": [160, 240] }
+      }
+    },
+    "display": {
+      "type": "object",
+      "required": [
+        "type",
+        "width",
+        "height",
+        "color_depth",
+        "bus",
+        "sda_gpio",
+        "scl_gpio",
+        "clock_hz",
+        "i2c_addr_7bit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["SH1106", "SSD1306", "ST7789_SPI", "CUSTOM"] },
+        "width": { "type": "integer", "enum": [128, 240, 320] },
+        "height": { "type": "integer", "enum": [64, 135, 240] },
+        "color_depth": { "type": "string", "enum": ["monochrome_1bit", "rgb565_16bit"] },
+        "bus": { "type": "string", "enum": ["I2C0", "I2C1", "SPI2", "SPI3"] },
+        "sda_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "scl_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "clock_hz": { "type": "integer", "enum": [100000, 400000, 1000000] },
+        "i2c_addr_7bit": { "type": "integer", "minimum": 0, "maximum": 127 }
+      }
+    },
+    "audio_input": {
+      "type": "object",
+      "required": ["type", "bus", "ws_gpio", "sck_gpio", "sd_gpio", "sample_rate_hz"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["INMP441", "CUSTOM_I2S", "NONE"] },
+        "bus": { "type": "string", "enum": ["I2S0", "I2S1"] },
+        "ws_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "sck_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "sd_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "sample_rate_hz": { "type": "integer", "enum": [16000, 44100] }
+      }
+    },
+    "audio_output": {
+      "type": "object",
+      "required": [
+        "type",
+        "bus",
+        "din_gpio",
+        "bclk_gpio",
+        "lrc_gpio",
+        "speaker_impedance_ohm",
+        "speaker_max_watts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["MAX98357A", "CUSTOM_I2S", "NONE"] },
+        "bus": { "type": "string", "enum": ["I2S0", "I2S1"] },
+        "din_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "bclk_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "lrc_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "speaker_impedance_ohm": { "type": "integer", "enum": [4, 8] },
+        "speaker_max_watts": { "type": "number", "minimum": 0.5, "maximum": 10.0 }
+      }
+    },
+    "user_inputs": {
+      "type": "object",
+      "required": ["ptt_button_gpio", "ptt_active_level", "touch_sensor_gpio", "touch_active_level"],
+      "additionalProperties": false,
+      "properties": {
+        "ptt_button_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "ptt_active_level": { "type": "string", "enum": ["LOW", "HIGH"] },
+        "touch_sensor_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "touch_active_level": { "type": "string", "enum": ["HIGH", "LOW"] }
+      }
+    },
+    "sensors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tof_xshut_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+        "imu_int_gpio": { "type": "integer", "minimum": 0, "maximum": 48 }
+      }
+    },
+    "mobility": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "driver_type": { "type": "string", "enum": ["TB6612FNG", "NONE"] },
+        "motor_type": { "type": "string", "enum": ["N20_6V", "NONE"] },
+        "pwm_freq_hz": { "type": "integer", "minimum": 1000, "maximum": 50000 },
+        "pinout": {
+          "type": "object",
+          "required": ["pwma_gpio", "ain1_gpio", "ain2_gpio", "pwmb_gpio", "bin1_gpio", "bin2_gpio", "stby_gpio"],
+          "additionalProperties": false,
+          "properties": {
+            "pwma_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+            "ain1_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+            "ain2_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+            "pwmb_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+            "bin1_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+            "bin2_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+            "stby_gpio": { "type": "integer", "minimum": 0, "maximum": 48 }
+          }
+        },
+        "safety": {
+          "type": "object",
+          "required": ["watchdog_timeout_ms", "cliff_sensors"],
+          "additionalProperties": false,
+          "properties": {
+            "watchdog_timeout_ms": { "type": "integer", "minimum": 100, "maximum": 1000 },
+            "cliff_sensors": {
+              "type": "object",
+              "required": ["enabled"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "cliff_left_gpio": { "type": "integer", "minimum": 0, "maximum": 48 },
+                "cliff_right_gpio": { "type": "integer", "minimum": 0, "maximum": 48 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "power": {
+      "type": "object",
+      "required": ["type", "nominal_voltage_v", "min_safe_voltage_v"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["USB_5V", "BATTERY_2S_LIPO", "EXTERNAL_DC"] },
+        "nominal_voltage_v": { "type": "number", "minimum": 3.0, "maximum": 12.0 },
+        "min_safe_voltage_v": { "type": "number", "minimum": 2.8, "maximum": 10.0 }
+      }
+    },
+    "reserved_pins": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0, "maximum": 48 },
+      "uniqueItems": true,
+      "description": "Elenco tassativo dei GPIO vietati per prevenire conflitti con strapping, USB, UART o Octal PSRAM."
+    },
+    "capabilities": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/capability_name" },
+      "uniqueItems": true
+    }
+  }
+}

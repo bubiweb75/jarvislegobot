@@ -1,7 +1,7 @@
 # GITHUB_REPOS_ANALYSIS — Analisi Tecnica e Riutilizzo Repository di Riferimento (FASE 6)
 
 > **Stato:** Analisi completata in preparazione alla FASE 6. **Nessuna modifica al codice** è stata ancora applicata (in attesa dei componenti hardware).
-> **Riferimenti:** [HARDWARE_PINOUT.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/06-Hardware-Integration/HARDWARE_PINOUT.md) | [AUDIO_ARCHITECTURE.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/06-Hardware-Integration/AUDIO_ARCHITECTURE.md) | [THIRD_PARTY_LICENSES.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/04-Firmware/jarvis-desk-buddy/THIRD_PARTY_LICENSES.md)
+> **Riferimenti:** [HARDWARE_PINOUT.md](06-Hardware-Integration/HARDWARE_PINOUT.md) | [AUDIO_ARCHITECTURE.md](06-Hardware-Integration/AUDIO_ARCHITECTURE.md) | [THIRD_PARTY_LICENSES.md](04-Firmware/jarvis-desk-buddy/THIRD_PARTY_LICENSES.md)
 
 ---
 

@@ -1,0 +1,42 @@
+{
+  "$schema": "../../schemas/device.schema.json",
+  "device_id": "rob-esp32s3-c44f33112233",
+  "schema_version": "1.0.0",
+  "user_label": "JARVIS Robot Primario",
+  "mdns_hostname": "jarvis-desk-01.local",
+  "hardware_profile_id": "hw-jarvis-desktop-v1",
+  "active_identity_id": "identity-jarvis-original-v3",
+  "firmware_version": "1.0.0",
+  "protocol_version": "v1.0",
+  "detected_capabilities": [
+    "DISPLAY_MONO_128X64",
+    "AUDIO_INPUT_I2S",
+    "AUDIO_OUTPUT_I2S",
+    "PTT",
+    "LOCAL_WAKEWORD",
+    "LOCAL_INTENTS",
+    "TOUCH_SINGLE",
+    "TOUCH_DOUBLE",
+    "TOUCH_LONG"
+  ],
+  "configuration": {
+    "desired_identity_id": "identity-jarvis-original-v3",
+    "applied_identity_id": "identity-jarvis-original-v3",
+    "last_known_good_identity_id": "identity-jarvis-original-v3",
+    "config_revision": 1,
+    "safe_apply_deferred": true
+  },
+  "pairing_status": "PAIRED",
+  "connection_status": "CONNECTED_IDLE",
+  "telemetry": {
+    "last_seen": "2026-11-24T18:30:00Z",
+    "ip_address": "192.0.2.10",
+    "rssi_dbm": -52,
+    "battery_mv": 5000,
+    "battery_pct": 100,
+    "free_heap_bytes": 178500,
+    "min_free_heap_bytes": 142000,
+    "fps_measured": 30.0,
+    "dropped_frames": 0
+  }
+}

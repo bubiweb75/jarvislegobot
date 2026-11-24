@@ -1,0 +1,237 @@
+openapi: 3.1.0
+info:
+  title: JARVIS Identity Studio REST API
+  description: API centralizzata per la gestione multi-robot, profili d'identità, skin Eyes 3.0, voci e telemetria.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8765/api/v1
+    description: Server locale di sviluppo (Windows / Host)
+  - url: http://jarvis-studio.home.arpa/api/v1
+    description: Server domestico su Raspberry Pi 5 (Produzione)
+paths:
+  /health:
+    get:
+      summary: Verifica stato operativo dei servizi condivisi
+      operationId: getHealth
+      responses:
+        '200':
+          description: Servizi operativi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "ok" }
+                  timestamp: { type: string, example: "2026-11-24T18:00:00Z" }
+                  services:
+                    type: object
+                    properties:
+                      database: { type: string, example: "connected" }
+                      stt: { type: string, example: "ready" }
+                      tts: { type: string, example: "ready" }
+                      ai_router: { type: string, example: "ready" }
+
+  /devices:
+    get:
+      summary: Elenco dei dispositivi robotici fisici registrati
+      operationId: listDevices
+      responses:
+        '200':
+          description: Lista robot registrati
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../schemas/device.schema.json'
+
+  /devices/{device_id}:
+    get:
+      summary: Dettaglio, stato e telemetria di un singolo robot
+      operationId: getDevice
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dati del dispositivo
+          content:
+            application/json:
+              schema:
+                $ref: '../schemas/device.schema.json'
+        '404':
+          description: Robot non trovato
+    patch:
+      summary: Aggiornamento etichetta o configurazione dispositivo
+      operationId: updateDevice
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_label: { type: string }
+                desired_identity_id: { type: string }
+                safe_apply_deferred: { type: boolean }
+      responses:
+        '200':
+          description: Dispositivo aggiornato
+
+  /devices/{device_id}/identity:
+    post:
+      summary: Assegna un'identità attiva a un robot (transazione sicura)
+      operationId: assignIdentity
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identity_id]
+              properties:
+                identity_id: { type: string }
+                safe_apply_deferred: { type: boolean, default: true }
+      responses:
+        '202':
+          description: Assegnazione accodata per applicazione sicura a stato IDLE
+        '400':
+          description: Identità incompatibile con le capability hardware del robot
+
+  /identities:
+    get:
+      summary: Catalogo di tutte le identità logiche
+      operationId: listIdentities
+      responses:
+        '200':
+          description: Catalogo identità
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../schemas/identity.schema.json'
+    post:
+      summary: Creazione o importazione di una nuova identità
+      operationId: createIdentity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/identity.schema.json'
+      responses:
+        '201':
+          description: Identità creata
+
+  /skins:
+    get:
+      summary: Catalogo di tutte le skin grafiche oculari
+      operationId: listSkins
+      responses:
+        '200':
+          description: Catalogo skin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../schemas/skin.schema.json'
+    post:
+      summary: Creazione o salvataggio di una nuova skin oculare
+      operationId: createSkin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/skin.schema.json'
+      responses:
+        '201':
+          description: Skin creata con successo
+
+  /voice/preview:
+    post:
+      summary: Sintetizza un campione audio per anteprima immediata nel browser
+      operationId: previewVoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [voice_id, text]
+              properties:
+                voice_id: { type: string }
+                text: { type: string, maxLength: 200 }
+                speed: { type: number, default: 1.0 }
+                pitch: { type: number, default: 0.0 }
+      responses:
+        '200':
+          description: Flusso audio WAV generato in memoria
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+
+  /wakewords:
+    get:
+      summary: Catalogo formale dei modelli di wake word e relativo stato
+      operationId: listWakeWords
+      responses:
+        '200':
+          description: Catalogo modelli con stato DESIRED / AVAILABLE / ACTIVE
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../schemas/wakeword.schema.json'
+
+  /hardware-profiles:
+    get:
+      summary: Catalogo dei profili hardware certificati (Desktop V1, Mobile V2, Custom)
+      operationId: listHardwareProfiles
+      responses:
+        '200':
+          description: Profili hardware supportati
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../schemas/hardware.schema.json'
+
+  /packages/upload:
+    post:
+      summary: Caricamento e validazione di un pacchetto compresso (.jarvis-skin, .jarvis-identity)
+      operationId: uploadPackage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [package_file]
+              properties:
+                package_file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Pacchetto validato e importato con successo
+        '400':
+          description: Pacchetto non valido, violazione limiti o firma non verificata

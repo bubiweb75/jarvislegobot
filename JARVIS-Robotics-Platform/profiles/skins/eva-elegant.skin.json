@@ -1,0 +1,63 @@
+{
+  "$schema": "../../schemas/skin.schema.json",
+  "skin_id": "skin-eva-elegant-v1",
+  "schema_version": "1.0.0",
+  "name": "EVA Elegant — Soft Companion",
+  "description": "Identità femminile ed elegante, con asole organiche morbide, ciglia stilizzate e transizioni delicate.",
+  "author": "JARVIS Platform Team",
+  "skin_version": "1.0.0",
+  "target_display": {
+    "type": "monochrome_1bit",
+    "width": 128,
+    "height": 64
+  },
+  "base_geometry": {
+    "width": 36.0,
+    "height": 36.0,
+    "shape_power": 2.2,
+    "taper": 0.08,
+    "corner_radius": 14.0,
+    "spacing_px": 16,
+    "pupil": {
+      "shape": "circle",
+      "radius": 6.5,
+      "catchlight": "double_offset"
+    },
+    "eyelashes": {
+      "enabled": true,
+      "count": 2,
+      "length_px": 5.0,
+      "curvature": 2.5
+    },
+    "eyebrows": {
+      "offset": 5.0,
+      "arch": 3.0,
+      "tilt": -2.0
+    }
+  },
+  "visual_behavior_profile_default": "CALM",
+  "expressions": {
+    "NEUTRAL": { "render_mode": "parametric", "width": 36.0, "height": 36.0, "shape_power": 2.2, "corner_radius": 14.0, "pupil_radius": 6.5 },
+    "HAPPY": { "render_mode": "crescent", "width": 34.0, "height": 22.0, "pupil_radius": 0.0, "brow_offset": 6.5, "brow_arch": 4.0 },
+    "CURIOUS": { "render_mode": "parametric", "width": 36.0, "height": 36.0, "left": { "width": 32.0, "height": 30.0, "brow_tilt": 3.0 }, "right": { "width": 38.0, "height": 40.0, "brow_tilt": -3.0 } },
+    "SLEEPY": { "render_mode": "parametric", "width": 34.0, "height": 28.0, "upper_lid_l": 10.0, "upper_lid_r": 10.0, "pupil_radius": 4.5 },
+    "LISTENING": { "render_mode": "parametric", "width": 36.0, "height": 40.0, "shape_power": 2.1, "pupil_radius": 8.0 },
+    "THINKING": { "render_mode": "parametric", "width": 34.0, "height": 30.0, "offset_x": 3.0, "offset_y": -2.5, "pupil_dx": 4.5, "pupil_dy": -2.5, "pupil_radius": 5.0 },
+    "SPEAKING": { "render_mode": "parametric", "width": 35.0, "height": 34.0, "lower_lid": 3.0, "lower_arch": 5.0, "pupil_radius": 6.0 },
+    "SURPRISED": { "render_mode": "parametric", "width": 38.0, "height": 42.0, "pupil_radius": 3.0, "transition_boost": 1.70 },
+    "SHY": { "render_mode": "parametric", "width": 32.0, "height": 26.0, "offset_x": -2.5, "offset_y": 3.5, "pupil_dx": -3.5, "pupil_dy": 2.0, "pupil_radius": 5.5 },
+    "LOVE": { "render_mode": "heart", "width": 32.0, "height": 32.0, "pupil_radius": 0.0 },
+    "WINK": { "render_mode": "parametric", "width": 36.0, "height": 36.0, "left": { "width": 36.0, "height": 36.0 }, "right": { "render_mode": "crescent", "width": 34.0, "height": 24.0 } },
+    "CONFUSED": { "render_mode": "parametric", "width": 34.0, "height": 34.0, "left": { "width": 30.0, "height": 28.0, "brow_tilt": 2.5 }, "right": { "width": 38.0, "height": 38.0, "brow_tilt": -2.5 } },
+    "MISCHIEVOUS": { "render_mode": "parametric", "width": 35.0, "height": 30.0, "upper_lid_l": 3.0, "upper_lid_r": 11.0, "brow_tilt": 3.5 },
+    "SLEEPING": { "render_mode": "sleeping_lash", "width": 32.0, "height": 22.0, "pupil_radius": 0.0 }
+  },
+  "motion": {
+    "natural_gaze": { "enabled": true, "micro_saccades_enabled": true, "max_offset_x": 9.0, "max_offset_y": 5.0, "suppress_in_listening": true },
+    "advanced_blink": { "enabled": true, "close_rate": 14.0, "open_rate": 10.0, "hold_closed_ms": 50, "double_blink_chance_pct": 12 },
+    "interpolation": { "algorithm": "exponential_decay", "base_decay_rate": 13.0 }
+  },
+  "voice_reactivity": { "enabled": true, "target_ocular_element": "lower_eyelid_arch", "max_deviation_px": 3.5, "smoothing_factor": 0.70 },
+  "resource_limits": { "max_framebuffer_bytes": 1024, "max_render_time_us": 2900 },
+  "fallback": { "fallback_skin_id": "skin-jarvis-original-v3" }
+}

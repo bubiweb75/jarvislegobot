@@ -1,35 +1,52 @@
 # File > 100 MB (limite GitHub)
 csv/inventory_parts.csv
 
-# Python / OS / Editor
+# Python / Node / OS / Editor
 __pycache__/
+**/__pycache__/
 *.pyc
 .venv/
-05-Voice-AI/.venv/
-05-Voice-AI/tts-lab/.venv*/
+**/.venv/
+**/.venv*/
+**/node_modules/
 05-Voice-AI/tts-lab/bin/
 05-Voice-AI/tts-lab/models/
 05-Voice-AI/tts-lab/samples/
+05-Voice-AI/tts-lab/samples_fase12_*/
 .DS_Store
 Thumbs.db
 
 # Segreti, configurazioni locali e memoria personale
 .env
 .env.local
-05-Voice-AI/.env
+**/.env
+**/.env.local
 05-Voice-AI/config.local.json
 05-Voice-AI/data/
+05-Voice-AI/.local_certs/
+**/wifi_secrets.h
+*.key
+*.pem
 *.db
 *.sqlite
 *.sqlite3
 *.corrupt.*.bak
+*.log
 
-# Build PlatformIO
+# Build PlatformIO / Arduino / Binari Wokwi
 .pio/
 04-Firmware/jarvis-desk-buddy/.pio/
+04-Firmware/**/build/
+04-Firmware/**/build_verify/
+04-Firmware/wokwi-*/*.bin
+04-Firmware/wokwi-*/*.zip
 
-# Backup e file audio temporanei
+# Backup Flash, audio temporanei e ZIP duplicati
+05-Voice-AI/backups/
 *BACKUP*.zip
 JARVIS_LEGO_BOT_BACKUP*.zip
+JARVIS_CARRIER_BOARD_V1_FINAL.zip
+JARVIS_CARRIER_BOARD_V1_PRODUZIONE.zip
 jarvis_piper_*.wav
 05-Voice-AI/tts-lab/samples/*.wav
+04-Firmware/arduino-hw-test/jarvis_voice_hw_test/audio/*.wav

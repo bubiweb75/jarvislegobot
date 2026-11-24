@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/wakeword.schema.json",
+  "wakeword_id": "wakeword-hey-eva-v1",
+  "schema_version": "1.0.0",
+  "phrase": "Hey Eva",
+  "language": "it",
+  "engine": "microWakeWord",
+  "format": "tflite_int8",
+  "status": "DESIRED",
+  "detection_parameters": {
+    "threshold": 0.70,
+    "cooldown_ms": 500,
+    "anti_retrigger_holdoff_ms": 300,
+    "barge_in_suppression": true
+  },
+  "resource_requirements": {
+    "flash_bytes": 45000,
+    "ram_tensor_arena_bytes": 32768,
+    "cpu_core": 1
+  },
+  "fallback_mechanism": {
+    "ptt_button_always_active": true,
+    "secondary_wakeword_id": "wakeword-hey-jarvis-v2"
+  }
+}

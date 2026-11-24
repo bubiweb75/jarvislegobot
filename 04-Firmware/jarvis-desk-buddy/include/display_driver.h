@@ -35,6 +35,10 @@ extern JarvisU8g2Display u8g2;
 I2cScanResult Begin();
 
 /// Blits the 128x64 monochrome framebuffer (XBM format) to the physical OLED.
-void PresentFramebuffer(const gfx::MonochromeFramebuffer& fb);
+/// Returns measured I2C transfer duration in microseconds.
+uint32_t PresentFramebuffer(const gfx::MonochromeFramebuffer& fb);
+
+/// Last measured OLED I2C transfer duration in microseconds.
+uint32_t LastTransferUs();
 
 }  // namespace jarvis::display

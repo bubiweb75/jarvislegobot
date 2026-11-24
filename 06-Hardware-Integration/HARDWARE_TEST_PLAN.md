@@ -7,7 +7,7 @@
 ## Test 1 — ESP32-S3 e Display OLED 1,3"
 
 - **Prerequisiti:**
-  - ESP32-S3-DevKitC-1 N16R8 e OLED 1,3" I²C collegati su breadboard **a USB scollegata**, seguendo [WIRING_GUIDE.md](file:///c:/Users/bcava/Desktop/Progetti/JARVIS%20LEGO%20BOT/06-Hardware-Integration/WIRING_GUIDE.md) (`VCC->3V3`, `GND->GND`, `SDA->GPIO41`, `SCL->GPIO42`).
+  - ESP32-S3-DevKitC-1 N16R8 e OLED 1,3" I²C collegati su breadboard **a USB scollegata**, seguendo [WIRING_GUIDE.md](06-Hardware-Integration/WIRING_GUIDE.md) (`VCC->3V3`, `GND->GND`, `SDA->GPIO41`, `SCL->GPIO42`).
   - Controllo visivo serigrafie `VCC/GND` e verifica col multimetro assenza cortocircuiti tra `3V3` e `GND`.
 - **Istruzioni:**
   1. Collegare il cavo USB-C alla porta **`USB`** nativa della DevKitC-1 e al PC Windows 11.

@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/identity.schema.json",
+  "title": "JARVIS Robotics Platform — Identity Profile Schema",
+  "description": "Schema formale per i profili d'identità logica disaccoppiati dal dispositivo fisico.",
+  "type": "object",
+  "required": [
+    "identity_id",
+    "schema_version",
+    "name",
+    "description",
+    "author",
+    "identity_version",
+    "language",
+    "skin_ref",
+    "voice_ref",
+    "wakeword_ref",
+    "personality_ref",
+    "visual_behavior_profile",
+    "greetings",
+    "required_capabilities",
+    "fallback"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "identity_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 64
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "author": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "identity_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["it", "en"]
+    },
+    "skin_ref": {
+      "type": "object",
+      "required": ["skin_id"],
+      "additionalProperties": false,
+      "properties": {
+        "skin_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "package_filename": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+\\.jarvis-skin$" }
+      }
+    },
+    "voice_ref": {
+      "type": "object",
+      "required": ["voice_id", "provider"],
+      "additionalProperties": false,
+      "properties": {
+        "voice_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "provider": { "type": "string", "enum": ["piper", "openai", "elevenlabs", "azure"] },
+        "speed": { "type": "number", "minimum": 0.5, "maximum": 2.0 },
+        "pitch": { "type": "number", "minimum": -12.0, "maximum": 12.0 },
+        "volume": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "wakeword_ref": {
+      "type": "object",
+      "required": ["model_id", "phrase"],
+      "additionalProperties": false,
+      "properties": {
+        "model_id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "phrase": { "type": "string", "minLength": 2, "maxLength": 50 },
+        "detection_threshold": { "type": "number", "minimum": 0.3, "maximum": 0.99 }
+      }
+    },
+    "personality_ref": {
+      "type": "object",
+      "required": ["personality_id"],
+      "additionalProperties": false,
+      "properties": {
+        "personality_id": { "$ref": "common.schema.json#/$defs/identifier" }
+      }
+    },
+    "visual_behavior_profile": {
+      "$ref": "common.schema.json#/$defs/visual_profile"
+    },
+    "greetings": {
+      "type": "object",
+      "required": ["presentation_phrase", "welcome_phrases"],
+      "additionalProperties": false,
+      "properties": {
+        "presentation_phrase": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "welcome_phrases": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 3, "maxLength": 200 },
+          "minItems": 1,
+          "maxItems": 10
+        }
+      }
+    },
+    "sound_effects": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "effects_volume": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "chimes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "greeting": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+\\.wav$" },
+            "attention": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+\\.wav$" },
+            "petting": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+\\.wav$" }
+          }
+        }
+      }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/capability_name" },
+      "uniqueItems": true
+    },
+    "optional_capabilities": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/capability_name" },
+      "uniqueItems": true
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min_display_width": { "type": "integer", "enum": [128, 240, 320] },
+        "min_display_height": { "type": "integer", "enum": [64, 135, 240] },
+        "audio_duplex_required": { "type": "boolean" }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["fallback_identity_id"],
+      "additionalProperties": false,
+      "properties": {
+        "fallback_identity_id": { "$ref": "common.schema.json#/$defs/identifier" }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "created_at": { "$ref": "common.schema.json#/$defs/iso_date_utc" },
+        "updated_at": { "$ref": "common.schema.json#/$defs/iso_date_utc" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 30 },
+          "maxItems": 10
+        }
+      }
+    }
+  }
+}

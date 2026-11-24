@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jarvis-platform.local/schemas/skin.schema.json",
+  "title": "JARVIS Robotics Platform — Skin Profile Schema",
+  "description": "Schema formale per la definizione di skin grafiche oculari Eyes 3.0 per display OLED 128x64. Esclusivamente elementi oculari.",
+  "type": "object",
+  "required": [
+    "skin_id",
+    "schema_version",
+    "name",
+    "description",
+    "author",
+    "skin_version",
+    "target_display",
+    "base_geometry",
+    "visual_behavior_profile_default",
+    "expressions",
+    "motion",
+    "voice_reactivity",
+    "fallback"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "skin_id": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "author": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "skin_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "target_display": {
+      "type": "object",
+      "required": ["type", "width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["monochrome_1bit", "grayscale_4bit", "rgb565_16bit"]
+        },
+        "width": {
+          "type": "integer",
+          "enum": [128, 240, 320]
+        },
+        "height": {
+          "type": "integer",
+          "enum": [64, 135, 240]
+        }
+      }
+    },
+    "base_geometry": {
+      "type": "object",
+      "required": [
+        "width",
+        "height",
+        "shape_power",
+        "taper",
+        "corner_radius",
+        "spacing_px",
+        "pupil"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 6.0,
+          "maximum": 60.0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 6.0,
+          "maximum": 60.0
+        },
+        "shape_power": {
+          "type": "number",
+          "minimum": 1.5,
+          "maximum": 8.0,
+          "description": "Esponente superellisse (2.0 = ellisse, 2.6 = Organic Visor, 4.0 = rettangolo smussato)"
+        },
+        "taper": {
+          "type": "number",
+          "minimum": -0.5,
+          "maximum": 0.5,
+          "description": "Fattore di conicità verticale/orizzontale"
+        },
+        "corner_radius": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 30.0
+        },
+        "spacing_px": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 40
+        },
+        "pupil": {
+          "type": "object",
+          "required": ["shape", "radius", "catchlight"],
+          "additionalProperties": false,
+          "properties": {
+            "shape": {
+              "type": "string",
+              "enum": ["circle", "slit_vertical", "square", "segmented_quad"]
+            },
+            "radius": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 20.0
+            },
+            "catchlight": {
+              "type": "string",
+              "enum": ["none", "single_2x2", "double_offset", "ocular_ring"]
+            }
+          }
+        },
+        "eyelashes": {
+          "type": "object",
+          "required": ["enabled", "count", "length_px"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "count": { "type": "integer", "minimum": 0, "maximum": 4 },
+            "length_px": { "type": "number", "minimum": 0.0, "maximum": 12.0 },
+            "curvature": { "type": "number", "minimum": -5.0, "maximum": 5.0 }
+          }
+        },
+        "eyebrows": {
+          "type": "object",
+          "required": ["offset", "arch", "tilt"],
+          "additionalProperties": false,
+          "properties": {
+            "offset": { "type": "number", "minimum": 0.0, "maximum": 20.0 },
+            "arch": { "type": "number", "minimum": 0.0, "maximum": 10.0 },
+            "tilt": { "type": "number", "minimum": -25.0, "maximum": 25.0 }
+          }
+        },
+        "ocular_hud": {
+          "type": "object",
+          "required": ["enabled", "concentric_rings", "scan_lines"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "concentric_rings": { "type": "boolean" },
+            "scan_lines": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "visual_behavior_profile_default": {
+      "$ref": "common.schema.json#/$defs/visual_profile"
+    },
+    "expressions": {
+      "type": "object",
+      "description": "Mappatura obbligatoria delle 14 espressioni di Eyes 3.0",
+      "required": [
+        "NEUTRAL",
+        "HAPPY",
+        "CURIOUS",
+        "SLEEPY",
+        "LISTENING",
+        "THINKING",
+        "SPEAKING",
+        "SURPRISED",
+        "SHY",
+        "LOVE",
+        "WINK",
+        "CONFUSED",
+        "MISCHIEVOUS",
+        "SLEEPING"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Z_]+$": {
+          "type": "object",
+          "required": ["render_mode"],
+          "additionalProperties": false,
+          "properties": {
+            "render_mode": {
+              "type": "string",
+              "enum": [
+                "parametric",
+                "crescent",
+                "heart",
+                "sleeping_lash",
+                "angular_slit",
+                "segmented_hud"
+              ]
+            },
+            "width": { "type": "number", "minimum": 4.0, "maximum": 60.0 },
+            "height": { "type": "number", "minimum": 4.0, "maximum": 60.0 },
+            "shape_power": { "type": "number", "minimum": 1.0, "maximum": 8.0 },
+            "taper": { "type": "number", "minimum": -0.5, "maximum": 0.5 },
+            "corner_radius": { "type": "number", "minimum": 0.0, "maximum": 30.0 },
+            "offset_x": { "type": "number", "minimum": -20.0, "maximum": 20.0 },
+            "offset_y": { "type": "number", "minimum": -20.0, "maximum": 20.0 },
+            "upper_lid_l": { "type": "number", "minimum": 0.0, "maximum": 30.0 },
+            "upper_lid_r": { "type": "number", "minimum": 0.0, "maximum": 30.0 },
+            "upper_arch": { "type": "number", "minimum": -10.0, "maximum": 15.0 },
+            "lower_lid": { "type": "number", "minimum": 0.0, "maximum": 30.0 },
+            "lower_arch": { "type": "number", "minimum": -10.0, "maximum": 15.0 },
+            "pupil_radius": { "type": "number", "minimum": 0.0, "maximum": 20.0 },
+            "pupil_dx": { "type": "number", "minimum": -15.0, "maximum": 15.0 },
+            "pupil_dy": { "type": "number", "minimum": -15.0, "maximum": 15.0 },
+            "brow_offset": { "type": "number", "minimum": 0.0, "maximum": 20.0 },
+            "brow_tilt": { "type": "number", "minimum": -25.0, "maximum": 25.0 },
+            "brow_arch": { "type": "number", "minimum": 0.0, "maximum": 10.0 },
+            "transition_boost": { "type": "number", "minimum": 0.5, "maximum": 3.0 },
+            "left": {
+              "type": "object",
+              "description": "Parametri asimmetrici occhio sinistro",
+              "additionalProperties": false,
+              "properties": {
+                "width": { "type": "number" },
+                "height": { "type": "number" },
+                "upper_lid_l": { "type": "number" },
+                "upper_lid_r": { "type": "number" },
+                "brow_tilt": { "type": "number" }
+              }
+            },
+            "right": {
+              "type": "object",
+              "description": "Parametri asimmetrici occhio destro",
+              "additionalProperties": false,
+              "properties": {
+                "render_mode": { "type": "string" },
+                "width": { "type": "number" },
+                "height": { "type": "number" },
+                "upper_lid_l": { "type": "number" },
+                "upper_lid_r": { "type": "number" },
+                "brow_tilt": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "required": ["natural_gaze", "advanced_blink", "interpolation"],
+      "additionalProperties": false,
+      "properties": {
+        "natural_gaze": {
+          "type": "object",
+          "required": ["enabled", "micro_saccades_enabled", "max_offset_x", "max_offset_y"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "micro_saccades_enabled": { "type": "boolean" },
+            "max_offset_x": { "type": "number", "minimum": 1.0, "maximum": 15.0 },
+            "max_offset_y": { "type": "number", "minimum": 1.0, "maximum": 10.0 },
+            "suppress_in_listening": { "type": "boolean" }
+          }
+        },
+        "advanced_blink": {
+          "type": "object",
+          "required": ["enabled", "close_rate", "open_rate", "hold_closed_ms"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "close_rate": { "type": "number", "minimum": 5.0, "maximum": 35.0 },
+            "open_rate": { "type": "number", "minimum": 3.0, "maximum": 30.0 },
+            "hold_closed_ms": { "type": "integer", "minimum": 10, "maximum": 300 },
+            "double_blink_chance_pct": { "type": "integer", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "interpolation": {
+          "type": "object",
+          "required": ["algorithm", "base_decay_rate"],
+          "additionalProperties": false,
+          "properties": {
+            "algorithm": { "type": "string", "enum": ["exponential_decay"] },
+            "base_decay_rate": { "type": "number", "minimum": 2.0, "maximum": 40.0 }
+          }
+        }
+      }
+    },
+    "voice_reactivity": {
+      "type": "object",
+      "description": "Reattività al volume audio limitata esclusivamente ad animazioni oculari.",
+      "required": ["enabled", "target_ocular_element", "max_deviation_px"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "target_ocular_element": {
+          "type": "string",
+          "enum": [
+            "lower_eyelid_arch",
+            "pupil_dilation",
+            "vertical_squeeze",
+            "combined_ocular"
+          ]
+        },
+        "max_deviation_px": { "type": "number", "minimum": 0.5, "maximum": 8.0 },
+        "smoothing_factor": { "type": "number", "minimum": 0.05, "maximum": 0.95 }
+      }
+    },
+    "resource_limits": {
+      "type": "object",
+      "required": ["max_framebuffer_bytes", "max_render_time_us"],
+      "additionalProperties": false,
+      "properties": {
+        "max_framebuffer_bytes": { "type": "integer", "maximum": 1024 },
+        "max_render_time_us": { "type": "integer", "maximum": 4000 }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "required": ["fallback_skin_id"],
+      "additionalProperties": false,
+      "properties": {
+        "fallback_skin_id": { "$ref": "common.schema.json#/$defs/identifier" }
+      }
+    }
+  }
+}
